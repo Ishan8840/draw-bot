@@ -7,7 +7,7 @@ from .models import DrawCommand, Identifier, Model, StrokeSpec
 class ChatMessage(Model):
     text: str = Field(min_length=1, max_length=8000)
     request_id: Identifier
-    source: Literal['text', 'voice', 'board'] = 'text'
+    source: Literal['text', 'voice', 'board', 'feedback'] = 'text'
 
     @model_validator(mode='after')
     def meaningful(self):
@@ -43,12 +43,12 @@ class NoArguments(Model):
 class ChatEvent(Model):
     id: int
     turn_id: str | None
-    kind: Literal['user', 'assistant', 'tool_call', 'tool_result', 'error', 'interruption']
+    kind: Literal['user', 'assistant', 'tool_call', 'tool_result', 'error', 'interruption', 'observation']
     content: str
     tool_name: str | None = None
     call_id: str | None = None
     created_at: float
-    source: Literal['text', 'voice', 'board'] = 'text'
+    source: Literal['text', 'voice', 'board', 'feedback'] = 'text'
 
 
 class ChatSession(Model):

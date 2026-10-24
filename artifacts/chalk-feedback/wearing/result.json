@@ -1,0 +1,33 @@
+{
+  "case": "wearing",
+  "attempts": [
+    {
+      "attempt": 0,
+      "evidence": {
+        "outcome": "weak_or_partial",
+        "path_coverage": 0.7894736842105263,
+        "new_pixels": 222,
+        "outside_change_fraction": 0.0,
+        "prior_mark_fraction": 0.0,
+        "brightness_shift": 0.0,
+        "source": "camera_frame_difference",
+        "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+      },
+      "decision": {
+        "action": "stop_inspect",
+        "step_m": 0.00025,
+        "max_offset_m": 0.00075,
+        "max_retries": 3,
+        "retries": 0,
+        "offset_m": 0.0
+      },
+      "motion_and_observation_wall_s": 7.051997018017573
+    }
+  ],
+  "final_action": "stop_inspect",
+  "environment_setup": {
+    "initial_loss_m": 0.0,
+    "wear_m_per_m": 0.02
+  },
+  "detector_inputs": "before/after camera JPEGs, intended line, fixed camera calibration only"
+}

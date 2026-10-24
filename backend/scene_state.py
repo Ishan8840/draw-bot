@@ -1,6 +1,7 @@
 """Durable authoritative scene. Executor owns synchronization of all mutations."""
 import asyncio
 import sqlite3
+import json
 from pathlib import Path
 from .models import Scene
 
@@ -11,6 +12,9 @@ class SceneStateManager:
             Path(database).parent.mkdir(parents=True, exist_ok=True)
         self.connection = sqlite3.connect(database, check_same_thread=False)
         self.connection.execute("CREATE TABLE IF NOT EXISTS scene (id INTEGER PRIMARY KEY CHECK(id=1), data TEXT NOT NULL)")
+        self.connection.execute("CREATE TABLE IF NOT EXISTS simulation_environment (id INTEGER PRIMARY KEY, data TEXT NOT NULL)")
+        environment = self.connection.execute("SELECT data FROM simulation_environment WHERE id=1").fetchone()
+        self.simulation_ink = json.loads(environment[0]) if environment else {}
         row = self.connection.execute("SELECT data FROM scene WHERE id=1").fetchone()
         self.scene = Scene.model_validate_json(row[0]) if row else Scene()
         # Restart is an interruption, never an instruction to resume old work.
@@ -39,6 +43,7 @@ class SceneStateManager:
 
     def _write(self, payload):
         with self.connection:
+            self.connection.execute("INSERT INTO simulation_environment VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET data=excluded.data", (json.dumps(self.simulation_ink),))
             self.connection.execute("INSERT INTO scene VALUES (1, ?) ON CONFLICT(id) DO UPDATE SET data=excluded.data", (payload,))
 
     async def commit(self):

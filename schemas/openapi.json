@@ -677,7 +677,8 @@
               "tool_call",
               "tool_result",
               "error",
-              "interruption"
+              "interruption",
+              "observation"
             ],
             "title": "Kind"
           },
@@ -716,7 +717,8 @@
             "enum": [
               "text",
               "voice",
-              "board"
+              "board",
+              "feedback"
             ],
             "title": "Source",
             "default": "text"
@@ -753,7 +755,8 @@
             "enum": [
               "text",
               "voice",
-              "board"
+              "board",
+              "feedback"
             ],
             "title": "Source",
             "default": "text"
@@ -927,6 +930,60 @@
         ],
         "title": "DrawCommand"
       },
+      "DrawingFeedback": {
+        "properties": {
+          "enabled": {
+            "type": "boolean",
+            "title": "Enabled",
+            "default": true
+          },
+          "phase": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "parking_before",
+              "capturing_before",
+              "drawing",
+              "parking_after",
+              "checking",
+              "inspection_required"
+            ],
+            "title": "Phase",
+            "default": "idle"
+          },
+          "stroke_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Stroke Id"
+          },
+          "depth_offset_m": {
+            "type": "number",
+            "maximum": 0.00075,
+            "minimum": 0.0,
+            "title": "Depth Offset M",
+            "default": 0.0
+          },
+          "latest": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarkVerification"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "DrawingFeedback"
+      },
       "DrawingObject": {
         "properties": {
           "object_id": {
@@ -1064,6 +1121,72 @@
         ],
         "title": "Line"
       },
+      "MarkVerification": {
+        "properties": {
+          "outcome": {
+            "type": "string",
+            "enum": [
+              "visible",
+              "missing",
+              "weak_or_partial",
+              "inconclusive"
+            ],
+            "title": "Outcome"
+          },
+          "decision": {
+            "type": "string",
+            "enum": [
+              "accepted",
+              "retry",
+              "inspection_required"
+            ],
+            "title": "Decision"
+          },
+          "path_coverage": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Path Coverage"
+          },
+          "new_pixels": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "New Pixels"
+          },
+          "note": {
+            "type": "string",
+            "title": "Note"
+          },
+          "source": {
+            "type": "string",
+            "const": "camera_frame_difference",
+            "title": "Source",
+            "default": "camera_frame_difference"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "outcome",
+          "decision",
+          "note"
+        ],
+        "title": "MarkVerification"
+      },
       "ModifyCommand": {
         "properties": {
           "schema_version": {
@@ -1193,6 +1316,25 @@
       },
       "Scene": {
         "properties": {
+          "drawing_feedback": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DrawingFeedback"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "execution_observation": {
+            "type": "string",
+            "enum": [
+              "virtual_ink",
+              "encoder_estimate_unverified"
+            ],
+            "title": "Execution Observation",
+            "default": "virtual_ink"
+          },
           "schema_version": {
             "type": "integer",
             "const": 1,
@@ -1377,6 +1519,27 @@
                 "rectangle": "#/components/schemas/Rectangle"
               }
             }
+          },
+          "mark_verification": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MarkVerification"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "retry_of": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Retry Of"
           },
           "status": {
             "type": "string",

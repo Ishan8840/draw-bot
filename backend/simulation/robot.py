@@ -24,6 +24,9 @@ def to_board(position):
     return ((float(position[0])-BOARD_ORIGIN[0])/BOARD_SIZE,(BOARD_ORIGIN[1]-float(position[1]))/BOARD_SIZE)
 
 
+OBSERVATION_POSE=to_world(-.7,.5,.19)
+
+
 class RobotSimulation:
     def __init__(self):
         # GL selection must precede importing MuJoCo. Physics does not need GL.
@@ -33,7 +36,9 @@ class RobotSimulation:
         self.model=mujoco.MjModel.from_xml_path(str(ROOT/'models/openarm/drawing.xml'))
         self.data=mujoco.MjData(self.model)
         self.ik=OpenArmIK(mujoco,self.model)
-        self.data.qpos[:]=self.ik.solve(to_world(.5,.5,PEN_UP))
+        self.feedback=mujoco.MjData(self.model)
+        self.world_ink={}  # Environment-only marks, never controller observations.
+        self.data.qpos[:]=self.ik.solve(OBSERVATION_POSE)
         self.servo_joints=self.data.qpos.copy()
         self.data.ctrl[:]=self.data.qpos
         mujoco.mj_forward(self.model,self.data)
@@ -50,9 +55,40 @@ class RobotSimulation:
         self.renderer=None
         self.last_ink=None
         self.fault=None
+        self.reacquire=False
+        self.chalk_loss_m=0.
+        self.chalk_wear_rate=0.
+        self.depth_offset_m=0.
+        self._nib_position=self.model.geom_pos[self.nib_id].copy()
 
     @property
-    def tip(self): return self.data.site_xpos[self.tip_id].copy()
+    def draw_height(self):
+        return PEN_DOWN-self.depth_offset_m
+
+    def set_depth_offset(self, offset_m):
+        if not np.isfinite(offset_m) or not 0<=offset_m<=.001:
+            raise ValueError('Simulation experiment correction must be between 0 and 1 mm')
+        self.depth_offset_m=float(offset_m)
+
+    def configure_chalk(self, loss_m=0., wear_rate=0.):
+        """Environment fault injection ONLY, unavailable to Astra/controller sensors.
+
+        Shift the physical nib back along the chalk axis without changing the
+        nominal tool site used for FK. This approximates shortening, not fracture,
+        dust, pressure-dependent abrasion, or realistic chalk material mechanics.
+        """
+        if not np.isfinite(loss_m) or not 0<=loss_m<=.01 or not np.isfinite(wear_rate) or not 0<=wear_rate<=.1:
+            raise ValueError('Invalid simulated chalk wear')
+        self.chalk_loss_m=float(loss_m);self.chalk_wear_rate=float(wear_rate)
+        self.model.geom_pos[self.nib_id]=self._nib_position+[loss_m,0,0]
+
+    @property
+    def tip(self):
+        # Encoder measurements + nominal robot model; no simulator site feedback.
+        self.feedback.qpos[:]=self.data.qpos
+        self.feedback.qvel[:]=self.data.qvel
+        self.mj.mj_forward(self.model,self.feedback)
+        return self.feedback.site_xpos[self.tip_id].copy()
 
     def in_contact(self):
         return any({int(c.geom1),int(c.geom2)}=={self.nib_id,self.board_id} and c.dist<=.00005 for c in self.data.contact)
@@ -70,7 +106,10 @@ class RobotSimulation:
         self.servo_joints+=np.clip(desired-self.servo_joints,-limits,limits)
         # Feedforward is a position-servo offset, so the original actuator force
         # limits still bound the TOTAL motor torque. No external joint forces.
-        commanded=self.servo_joints+self.data.qfrc_bias/self.model.actuator_gainprm[:,0]
+        self.feedback.qpos[:]=self.data.qpos
+        self.feedback.qvel[:]=self.data.qvel
+        self.mj.mj_forward(self.model,self.feedback)
+        commanded=self.servo_joints+self.feedback.qfrc_bias/self.model.actuator_gainprm[:,0]
         self.data.ctrl[:]=np.clip(commanded,self.model.actuator_ctrlrange[:,0],self.model.actuator_ctrlrange[:,1])
         self.mj.mj_step(self.model,self.data)
         self.mj.mj_forward(self.model,self.data)
@@ -96,30 +135,34 @@ class RobotSimulation:
             self.stroke_id=stroke_id; self.arc=0.; self.last_ink=None
             self.target=self.tip.copy();self.target[2]=PEN_UP
             self._phase('lift')
+        if self.reacquire:
+            self.servo_target=self.tip.copy();self.xy_correction[:]=0
+            self.target=self.tip.copy();self.target[2]=PEN_UP
+            self._phase('lift');self.reacquire=False
         samples=[];done=False;fault=None
         for _ in range(max(1,round(seconds/self.model.opt.timestep))):
-            start=trajectory.points[0]
+            start=self.at(trajectory,self.arc)
             if self.phase=='lift':
                 if abs(self.tip[2]-PEN_UP)<.0004:
                     self.target=to_world(start.x,start.y,PEN_UP);self._phase('travel')
             elif self.phase=='travel':
                 if np.linalg.norm(self.tip-self.target)<.00025 and np.linalg.norm(self.data.qvel)<.01:
-                    self.target=to_world(start.x,start.y,PEN_DOWN);self._phase('lower')
+                    self.target=to_world(start.x,start.y,self.draw_height);self._phase('lower')
             elif self.phase=='lower':
-                if self.in_contact(): self._phase('draw')
+                if abs(self.tip[2]-self.draw_height)<.0006: self._phase('draw')
             elif self.phase=='draw':
                 # Feed target only as measured tracking catches up. Speed is capped
                 # at .045 m/s, independently of an excessively high UI speed request.
                 if np.linalg.norm(self.tip[:2]-self.target[:2])<.0015:
                     self.arc=min(trajectory.length,self.arc+min(speed,.25)*self.model.opt.timestep)
                 p=self.at(trajectory,self.arc)
-                self.target=to_world(p.x,p.y)
+                self.target=to_world(p.x,p.y,self.draw_height)
                 if self.arc>=trajectory.length and np.linalg.norm(self.tip[:2]-self.target[:2])<.00008 and np.linalg.norm(self.data.qvel[:2])<.01:
                     self.target[2]=PEN_UP;self._phase('retract')
                 # Long curves must not trip the acquisition/settling timeout.
                 if self.arc<trajectory.length and np.linalg.norm(self.tip[:2]-self.target[:2])<.002:
                     self.phase_time=0.
-            if self.phase=='draw' and self.arc>=trajectory.length:
+            if (self.phase=='draw' and self.arc>=trajectory.length) or (self.phase=='travel' and np.linalg.norm(self.tip-self.target)<.002):
                 # Remove contact-induced endpoint bias without winding up during
                 # path motion. The correction is bounded to one millimeter.
                 self.xy_correction=np.clip(self.xy_correction+5*self.model.opt.timestep*(self.target[:2]-self.tip[:2]),-.001,.001)
@@ -128,17 +171,12 @@ class RobotSimulation:
             except Exception as exc:
                 fault=f'{type(exc).__name__}: {exc}'
                 break
-            # Ink is measured geometry ONLY while the nib physically contacts the board.
-            # Lift/travel never contributes paths, even after cancelling an old stroke.
-            if self.phase in ('lower','draw','retract') and self.in_contact():
-                contact=next(c for c in self.data.contact if {int(c.geom1),int(c.geom2)}=={self.nib_id,self.board_id} and c.dist<=.00005)
-                x,y=to_board(contact.pos)
-                # At an edge MuJoCo reports the midpoint of contacting surfaces;
-                # project it onto the finite board within the 3 mm nib radius.
-                margin=.003/BOARD_SIZE
-                if not (-margin<=x<=1+margin and -margin<=y<=1+margin):
-                    fault='Pen left the drawing area'
-                    break
+            # Hidden environment physics deposits ink. Its output is used ONLY
+            # by the camera renderer, never by motion control or scene progress.
+            self._deposit_world_ink(stroke_id)
+            # Expected trace from encoders and calibrated board, NOT sensed ink.
+            if self.phase in ('lower','draw','retract') and abs(self.tip[2]-self.draw_height)<.0006:
+                x,y=to_board(self.tip)
                 p=(min(1.,max(0.,x)),min(1.,max(0.,y)))
                 if self.last_ink is None or hypot(p[0]-self.last_ink[0],p[1]-self.last_ink[1])>.0005:
                     samples.append(p);self.last_ink=p
@@ -150,8 +188,46 @@ class RobotSimulation:
         reached=max(0.,self.arc-lag)
         return {'samples':samples,'done':done,'reached':reached,'telemetry':self.telemetry(),'fault':fault}
 
+    def observation_batch(self, seconds):
+        """Lift then park via bounded actuators; retain the interrupted path cursor."""
+        if self.phase not in ('observe_lift','observe_park'):
+            if np.linalg.norm(self.tip-OBSERVATION_POSE)<.0004:
+                return True
+            self.reacquire=self.stroke_id is not None
+            self.xy_correction[:]=0
+            self.servo_target=self.tip.copy()
+            self.target=self.tip.copy();self.target[2]=OBSERVATION_POSE[2]
+            self._phase('observe_lift')
+        for _ in range(max(1,round(seconds/self.model.opt.timestep))):
+            if self.phase=='observe_lift' and abs(self.tip[2]-OBSERVATION_POSE[2])<.0004:
+                self.target=OBSERVATION_POSE.copy();self._phase('observe_park')
+            self._servo(self.target)
+            # The environment may mark the very beginning of a pen lift.
+            if self.stroke_id:
+                self._deposit_world_ink(self.stroke_id, observation_lift=self.phase=='observe_lift')
+            if self.phase=='observe_park' and np.linalg.norm(self.tip-OBSERVATION_POSE)<.0004 and np.linalg.norm(self.data.qvel)<.01:
+                self._phase('idle')
+                return True
+        return False
+
+    def _deposit_world_ink(self, stroke_id, observation_lift=False):
+        """Simulator environment only: a real camera would see these marks."""
+        if not observation_lift and self.phase not in ('lower','draw','retract'):
+            return
+        for contact in self.data.contact:
+            if {int(contact.geom1),int(contact.geom2)}=={self.nib_id,self.board_id} and contact.dist<=.00005:
+                x,y=to_board(contact.pos)
+                p=(min(1.,max(0.,x)),min(1.,max(0.,y)))
+                points=self.world_ink.setdefault(stroke_id,[])
+                if not points or hypot(p[0]-points[-1][0],p[1]-points[-1][1])>.0005:
+                    distance=hypot(p[0]-points[-1][0],p[1]-points[-1][1])*BOARD_SIZE if points else 0.
+                    points.append(p)
+                    if self.chalk_wear_rate:
+                        self.configure_chalk(min(.01,self.chalk_loss_m+distance*self.chalk_wear_rate),self.chalk_wear_rate)
+                break
+
     def reset_execution(self):
-        self.stroke_id=None;self.arc=0.;self.last_ink=None;self.fault=None
+        self.stroke_id=None;self.arc=0.;self.last_ink=None;self.fault=None;self.reacquire=False
         self.servo_joints=self.data.qpos.copy()
         self.data.ctrl[:]=self.data.qpos;self.data.qvel[:]=0
         self.target=self.tip.copy();self.servo_target=self.target.copy();self.xy_correction[:]=0;self._phase('idle')
@@ -163,8 +239,9 @@ class RobotSimulation:
                 'simulation_time':float(self.data.time),'joint_positions':self.data.qpos.tolist(),
                 'joint_names':[self.model.joint(i).name for i in range(self.model.njnt)],
                 'model_source':'enactic/openarm_mujoco@a3c8a57ec15d385e3c1dbd3fd090ee486b7f258c',
-                'pen_world_m':self.tip.tolist(),'pen_board':list(to_board(self.tip)),
-                'pen_contact':self.in_contact(),'target_world_m':self.target.tolist(),
+                'estimated_pen_world_m':self.tip.tolist(),'estimated_pen_board':list(to_board(self.tip)),
+                'joint_velocities':self.data.qvel.tolist(),'feedback_source':'encoders + nominal forward kinematics',
+                'ink_verified':False,'target_world_m':self.target.tolist(),
                 'tracking_error_m':float(np.linalg.norm(self.tip[:2]-self.target[:2])),
                 'fault':self.fault,'speed_limit_board_units_s':.25,
                 'board':{'side_m':BOARD_SIZE,'origin_world_m':BOARD_ORIGIN.tolist(),
@@ -178,12 +255,14 @@ class RobotSimulation:
         cam=self.mj.MjvCamera()
         cam.lookat[:]=[.19,-.12,.31];cam.distance=1.05
         cam.azimuth=90 if camera=='top' else 130
-        cam.elevation=-89.9 if camera=='top' else -48
+        cam.elevation=-90 if camera=='top' else -48
+        if camera=='top':
+            cam.lookat[:]=[.29,-.16,.14];cam.distance=.34
         self.renderer.update_scene(self.data,camera=cam)
         scene=self.renderer.scene
         scene.flags[self.mj.mjtRndFlag.mjRND_SHADOW]=False
         scene.flags[self.mj.mjtRndFlag.mjRND_REFLECTION]=False
-        # Segments are display-only feedback from authoritative scene ink.
+        # Environment marks are visible through the camera, not controller feedback.
         # Bound render complexity without changing any persisted trajectories.
         count=sum(max(0,len(points)-1) for _,points in ink)
         stride=max(1,int(np.ceil(count/5000)))

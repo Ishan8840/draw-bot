@@ -1,0 +1,33 @@
+{
+  "case": "fresh",
+  "attempts": [
+    {
+      "attempt": 0,
+      "evidence": {
+        "outcome": "visible",
+        "path_coverage": 1.0,
+        "new_pixels": 308,
+        "outside_change_fraction": 2.2723399420553316e-05,
+        "prior_mark_fraction": 0.0,
+        "brightness_shift": 0.0,
+        "source": "camera_frame_difference",
+        "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+      },
+      "decision": {
+        "action": "accept",
+        "step_m": 0.00025,
+        "max_offset_m": 0.00075,
+        "max_retries": 3,
+        "retries": 0,
+        "offset_m": 0.0
+      },
+      "motion_and_observation_wall_s": 2.4788847790041473
+    }
+  ],
+  "final_action": "accept",
+  "environment_setup": {
+    "initial_loss_m": 0.0,
+    "wear_m_per_m": 0.0
+  },
+  "detector_inputs": "before/after camera JPEGs, intended line, fixed camera calibration only"
+}

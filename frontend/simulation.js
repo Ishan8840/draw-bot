@@ -14,7 +14,11 @@
       const state=await response.json();
       if(!state.enabled) {panel.hidden=true;return;}
       panel.hidden=false;
-      status.textContent=state.fault?`Paused: ${state.fault}`:`${state.execution_status} · ${state.phase} · pen ${state.pen_contact?'in contact':'lifted'} · simulation ${state.simulation_time.toFixed(1)} s`;
+      document.getElementById("trace-note").hidden=false;
+      document.getElementById("board").setAttribute("aria-label","Estimated pen trace and manual input; camera confirms actual marks");
+      const feedback=state.drawing_feedback;
+      const check=feedback?` · camera: ${feedback.phase}${feedback.latest?' / '+feedback.latest.outcome:''} · correction ${(feedback.depth_offset_m*1000).toFixed(2)} mm`:'';
+      status.textContent=state.fault?`Paused: ${state.fault}`:`${state.execution_status} · ${state.phase} · encoder estimate · ink unverified · simulation ${state.simulation_time.toFixed(1)} s${check}`;
       if(!document.hidden) {
         const image=await fetch(`/simulation/frame?camera=${encodeURIComponent(camera.value)}`,{signal:controller.signal});
         if(!image.ok) {const detail=await image.json();throw new Error(detail.detail || 'Rendering failed');}

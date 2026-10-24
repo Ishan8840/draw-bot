@@ -39,8 +39,16 @@
         details.append(title,pre); wrapper.append(details);
       } else {
         const label=document.createElement('strong');
-        label.textContent=event.kind==='user'?(event.source==='board'?'Your drawing':'You'):event.kind==='assistant'?'Astra':event.kind==='error'?'Error':'Interrupted';
+        label.textContent=event.kind==='user'?(event.source==='board'?'Your drawing':'You'):event.kind==='assistant'?'Astra':event.kind==='error'?'Error':event.kind==='observation'?'Camera check':'Interrupted';
         const text=document.createElement('p'); text.textContent=event.kind==='user' && event.source==='board'?'You drew on the board. Astra is responding.':event.content;
+        if (event.kind==='observation') {
+          try {
+            const result=JSON.parse(event.content.replace(/^Camera drawing feedback: /,''));
+            const outcome={visible:'New marks detected.',missing:'No new marks detected.',weak_or_partial:'The stroke looks partial or faint.',inconclusive:'The camera could not verify this stroke.'};
+            const next=result.feedback.decision==='retry'?' Retrying with a small height correction.':result.feedback.decision==='inspection_required'?' Drawing is paused for inspection.':result.status==='idle'?' Drawing checks are complete.':'';
+            text.textContent=(outcome[result.feedback.outcome] || 'Camera check completed.')+next;
+          } catch { text.textContent='Camera feedback updated. See the scene inspector for details.'; }
+        }
         wrapper.append(label,text);
       }
       history.append(wrapper);

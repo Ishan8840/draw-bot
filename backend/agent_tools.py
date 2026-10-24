@@ -8,7 +8,7 @@ TOOL_MODELS = {
     'cancel_drawing': NoArguments, 'clear_board': NoArguments,
 }
 DESCRIPTIONS = {
-    'get_scene_state':'Read current semantic objects, actual ink, incomplete paths, free area and recent user ink. With object_id and include_geometry=true, offset/limit paginate exact strokes. Otherwise paginate object summaries.',
+    'get_scene_state':'Read drawing plans and execution status. In camera_and_joint_state mode, motion progress is estimated, human marks and actual ink are camera-only, and geometry queries return your own planned paths. Virtual mode also returns virtual ink and free-area cells. Use offset/limit to paginate objects or strokes.',
     'draw_strokes':'Append one semantic object with at most 32 strokes / 2048 input points. It queues asynchronously; success does not mean execution is complete. Use fresh object and globally unique stroke IDs.',
     'modify_object':'Replace the remaining plan of an existing object with fresh stroke IDs. Old pending/executing paths become cancelled; all old geometry and executed ink remain. Supply ONLY additional ink; never claim ink was erased. Paused execution stays paused.',
     'pause_drawing':'Pause the current execution without erasing ink or pending paths.',

@@ -2,7 +2,7 @@
   {
     "type": "function",
     "name": "get_scene_state",
-    "description": "Read current semantic objects, actual ink, incomplete paths, free area and recent user ink. With object_id and include_geometry=true, offset/limit paginate exact strokes. Otherwise paginate object summaries.",
+    "description": "Read drawing plans and execution status. In camera_and_joint_state mode, motion progress is estimated, human marks and actual ink are camera-only, and geometry queries return your own planned paths. Virtual mode also returns virtual ink and free-area cells. Use offset/limit to paginate objects or strokes.",
     "parameters": {
       "additionalProperties": false,
       "properties": {

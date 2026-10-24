@@ -200,3 +200,13 @@ node tests/browser_smoke.cjs
 Optional environment variables: `HEADLESS=0` (visible browser), `SLOW_MO=150` (milliseconds), `ASTRA_URL`, `PLAYWRIGHT_MODULE` (path to an existing installation), `CHROME_PATH`, and `ASTRA_SCREENSHOT`. It checks the interrupted-house workflow, DOM reconstruction after reload, mouse drawing, circle bounds, mobile overflow/aspect ratio, and browser errors.
 
 See [TEST_RESULTS.md](TEST_RESULTS.md) for actual execution results and environment limitations.
+
+### OpenArm sensor boundary
+
+MuJoCo mode now gives Astra camera images, joint readings and fixed board calibration, plus its own drawing-plan memory. It does not expose contact state, exact human stroke geometry or ground-truth robot ink. The SVG execution trace is an encoder estimate; the camera is the observation of actual simulated marks. See [sensor semantics and remaining hardware work](docs/MUJOCO.md). Launch with `python -m scripts.run_mujoco` and open http://127.0.0.1:8000.
+
+### Test camera feedback with chalk wear
+
+Run `python -m scripts.test_chalk_feedback` to try four isolated MuJoCo cases: fresh chalk, shortened chalk with bounded retries, excessive shortening, and wear during a stroke. Before/after camera images and results are saved to `artifacts/chalk-feedback/`. No API key is needed. See [the experiment and its limits](docs/CHALK_FEEDBACK.md); MuJoCo now enables these checks in the normal app as well (`SIM_VERIFY_MARKS=true` by default), with a persistent 0.75 mm correction limit. Failed checks pause drawing and notify Astra; see the guide for live wear settings.
+
+MuJoCo checks each finished stroke before moving on. Confirmed missing strokes are retried immediately, ahead of the remaining drawing. It tries the normal pen-up view first and moves aside only when that view cannot confirm the stroke. Corrections remain bounded.

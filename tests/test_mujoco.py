@@ -258,3 +258,142 @@ def test_openarm_can_draw_all_four_board_edges():
             assert result['done'] and samples
             assert all(0<=x<=1 and 0<=y<=1 for x,y in samples)
     finally: robot.close()
+
+
+def test_feedback_uses_encoders_not_simulator_tip_or_contact():
+    robot=RobotSimulation()
+    try:
+        expected=robot.tip.copy()
+        robot.data.site_xpos[robot.tip_id]=[99,99,99]
+        robot.in_contact=lambda: (_ for _ in ()).throw(AssertionError('Contact sensor used'))
+        assert robot.tip==pytest.approx(expected)
+        result=robot.batch('sensor-test',flatten(example('circle').paths[0].geometry),.25,.05)
+        assert result['fault'] is None
+        assert 'pen_contact' not in result['telemetry']
+        assert result['telemetry']['ink_verified'] is False
+    finally: robot.close()
+
+
+def test_dry_marker_motion_does_not_create_camera_ink():
+    robot=RobotSimulation()
+    try:
+        robot._deposit_world_ink=lambda *_: None  # Environment: empty marker.
+        samples=[]
+        trajectory=flatten(example('o').paths[0].geometry)
+        for _ in range(1000):
+            result=robot.batch('dry-marker',trajectory,.25,.05)
+            assert result['fault'] is None
+            samples.extend(result['samples'])
+            if result['done']: break
+        assert result['done'] and samples
+        assert robot.world_ink=={}  # Motion estimates cannot paint the camera.
+    finally: robot.close()
+
+
+@async_test
+async def test_sensor_agent_hides_manual_geometry_and_cannot_disable_camera(tmp_path):
+    monkeypatch=pytest.MonkeyPatch()
+    from backend.astra_agent import AstraAgent
+    from backend.conversation_store import ConversationStore
+    from backend.drawing_engine import DrawingEngine
+    from backend.scene_summary import sensor_detail
+    monkeypatch.setenv('ASTRA_BOARD_IMAGES','false')
+    async with executor(tmp_path) as ex:
+        command=example('x').model_copy(update={'object_id':'private-human-mark'})
+        await ex.record_manual(command)
+        scene=await ex.get_scene_state()
+        with pytest.raises(ValueError): sensor_detail(scene.objects[0],0,10)
+        client=MockClient(read(),response(text='I see your drawing.'))
+        agent=AstraAgent(DrawingEngine(ex),ConversationStore(':memory:'),client=client)
+        sid=(await agent.store.create()).session_id
+        try:
+            await agent.handle_user_instruction(sid,'Look at the board.','text','sensor-turn')
+            while agent.tasks: await asyncio.sleep(.01)
+            payload=json.dumps([request["input"] for request in client.requests])
+            assert 'private-human-mark' not in payload
+            assert 'executed_points' not in payload
+            assert 'pen_contact' not in payload
+            assert 'data:image/jpeg;base64,' in payload
+            assert 'camera_and_joint_state' in payload
+        finally:
+            await agent.close()
+            monkeypatch.undo()
+
+
+@async_test
+async def test_camera_ink_persists_separately_from_motion_estimates(tmp_path):
+    async with executor(tmp_path) as ex:
+        await ex.execute(example('o'))
+        await until(ex,lambda s:s.objects[0].strokes[0].progress>.1)
+        assert ex.state.simulation_ink
+        saved=json.loads(json.dumps(ex.state.simulation_ink))
+        await ex.cancel()
+    async with executor(tmp_path) as restored:
+        assert restored.state.simulation_ink==saved
+        assert restored.robot.world_ink==saved
+        await restored.clear_board()
+        assert restored.robot.world_ink=={}
+
+
+@async_test
+async def test_observation_parks_physical_arm_and_preserves_partial_resume(tmp_path):
+    import numpy as np
+    from backend.simulation.robot import OBSERVATION_POSE
+    async with executor(tmp_path) as ex:
+        await ex.execute(example('house'))
+        partial=await until(ex,lambda s:s.objects[0].strokes[0].progress>.15)
+        await ex.pause()
+        arc=ex.robot.arc
+        joints=ex.robot.data.qpos.copy()
+        assert await ex.prepare_observation()
+        assert ex.robot.tip==pytest.approx(OBSERVATION_POSE,abs=.0004)
+        assert not np.allclose(joints,ex.robot.data.qpos)
+        assert ex.robot.arc==arc
+        parked=await ex.get_scene_state()
+        assert parked.objects==partial.objects
+        Path('/tmp/astra-clear-view.jpg').write_bytes(await ex.frame('top'))
+        await ex.resume()
+        resumed=await until(ex,lambda s:s.objects[0].strokes[0].progress>partial.objects[0].strokes[0].progress+.02)
+        before=partial.objects[0].strokes[0].executed_points
+        assert resumed.objects[0].strokes[0].executed_points[:len(before)]==before
+
+
+@async_test
+async def test_cancel_interrupts_observation_motion(tmp_path):
+    async with executor(tmp_path) as ex:
+        await ex.execute(example('circle'))
+        await until(ex,lambda s:s.objects[0].strokes[0].progress>.05)
+        await ex.pause()
+        original=ex.robot.observation_batch
+        started=asyncio.Event()
+        async def interrupted_call(fn,*args):
+            result=await call(fn,*args)
+            if fn==original: started.set()
+            return result
+        call=ex._call
+        ex._call=interrupted_call
+        task=asyncio.create_task(ex.prepare_observation())
+        await asyncio.wait_for(started.wait(),2)
+        await ex.cancel()
+        assert await asyncio.wait_for(task,2) is False
+        time=ex.robot.data.time
+        await asyncio.sleep(.02)
+        assert ex.robot.data.time==time
+
+
+def test_chalk_wear_is_environment_only_and_correction_is_bounded():
+    robot=RobotSimulation()
+    try:
+        tip=robot.tip.copy()
+        nib=robot.model.geom_pos[robot.nib_id].copy()
+        robot.configure_chalk(.0006,.02)
+        assert robot.model.geom_pos[robot.nib_id][0]==pytest.approx(nib[0]+.0006)
+        assert robot.tip==pytest.approx(tip)  # Nominal FK does not learn the wear.
+        assert 'chalk_loss_m' not in robot.telemetry()
+        assert 'chalk_wear_rate' not in robot.telemetry()
+        robot.set_depth_offset(.0005)
+        assert robot.draw_height==pytest.approx(PEN_DOWN-.0005)
+        for value in (-.001,.002,float('nan')):
+            with pytest.raises(ValueError): robot.set_depth_offset(value)
+        with pytest.raises(ValueError): robot.configure_chalk(-.001)
+    finally: robot.close()

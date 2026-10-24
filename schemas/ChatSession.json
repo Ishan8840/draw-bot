@@ -25,7 +25,8 @@
             "tool_call",
             "tool_result",
             "error",
-            "interruption"
+            "interruption",
+            "observation"
           ],
           "title": "Kind",
           "type": "string"
@@ -67,7 +68,8 @@
           "enum": [
             "text",
             "voice",
-            "board"
+            "board",
+            "feedback"
           ],
           "title": "Source",
           "type": "string"

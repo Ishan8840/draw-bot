@@ -1,3 +1,101 @@
+# Latest verification — immediate missing-stroke retries (2026-10-24)
+
+```text
+MUJOCO_GL=egl .venv/bin/python -m scripts.test_sandbox
+154 passed, 1 warning in 194.27s
+```
+
+The executor checks each completed stroke before allowing the next stroke to start. Confirmed missing strokes and localized repairs are inserted immediately after the failed stroke, ahead of later drawing work. The first check uses the normal pen-up camera view. Unclear results trigger a clear-view observation before any correction; a successful clear lift-view check does not command parking. Usable post-stroke images become the next baseline.
+
+New regressions verify immediate retry ordering, an intermediate camera check while the next stroke remains pending, no lowering based on an obstructed image, and acceptance without unnecessary parking when the lifted view is clear. The suite also covers actual-physics shortened-chalk recovery and localized partial repair, cancellation/clear/pause fences, persistent budgets, agent read-only failure handling, voice, APIs and the wear-enabled launcher. Model responses are mocked; MuJoCo dynamics and rendering are real. The warning is the existing Starlette/AnyIO deprecation.
+
+---
+
+# Latest verification — continuous drawing, then gap repair (2026-10-24)
+
+```text
+MUJOCO_GL=egl .venv/bin/python -m scripts.test_sandbox
+141 passed, 1 warning in 155.17s
+# Additional real-physics partial-repair regression, with sandbox heartbeat:
+pytest -q tests/test_live_feedback.py -k physical_partial
+1 passed, 11 deselected in 27.98s
+pytest -q tests/test_mark_verification.py
+11 passed in 1.22s
+```
+
+Verification now runs after the queue drains, using a shared before/after image pair for the drawing pass. A real-physics two-stroke test confirms exactly two captures: before either stroke starts, and after both complete. Planned changes elsewhere in the same pass no longer count as unexpected camera changes. Repairs are queued after inspection, with one bounded height correction per repair pass, fresh IDs, and preserved original marks. Uncertainty anywhere in the pass prevents automatic repairs.
+
+New tests verify image-localized missing sections, no repair of faint/ambiguous marks, and repair queue placement after completed originals. The additional physical regression shortens the chalk midway through a line: the original finishes with partial evidence, the executor queues a polyline only over the missing portion, and the repaired section becomes camera-visible within the existing correction budget. It does not redraw the good first half. Existing cancellation, stale images, persistent budgets, API, agent and voice tests remain passing.
+
+The warning is the existing Starlette/AnyIO deprecation. Camera geometry and chalk wear remain simulated, and Astra integration tests use mocked model responses. Details and limits: docs/CHALK_FEEDBACK.md.
+
+---
+
+# Latest verification — live Astra camera feedback (2026-10-23)
+
+```text
+MUJOCO_GL=egl .venv/bin/python -m scripts.test_sandbox
+137 passed, 1 warning in 141.99s
+node --check frontend/chat.js
+node --check frontend/simulation.js
+# both exit 0
+```
+
+The normal MuJoCo application now selects VerifiedMuJoCoExecutor by default. New real-physics integration tests cover visible strokes, camera-detected failure and bounded retries for 0.6 mm shortening, fresh retry IDs in the same semantic object, persistent correction budgets, reconnect, and conservative recovery after restart during a check. Race tests verify that Cancel, Clear and a quick Pause/Resume discard in-flight images without applying stale height corrections or queuing retries. The existing phase 1, agent, voice and MuJoCo suites still pass.
+
+A mocked Responses conversation draws through the shared engine, receives a failed camera check, automatically enters a read-only Astra feedback turn, and is prevented from resuming via a model tool call. The application factory/API test confirms checks are enabled in MuJoCo mode and scene snapshots reconstruct over WebSocket. Camera parsing and failures preserve the sensor-only boundary: no hidden chalk wear, contact data or environment ink coordinates enter Astra's context.
+
+The warning is the existing Starlette/AnyIO deprecation. Tests use real MuJoCo/EGL and mocked model responses; no live OpenAI conversation, physical chalk/robot or browser-server walkthrough was performed. Camera checks add per-stroke parking/rendering time and remain a controlled-simulation detector. See docs/CHALK_FEEDBACK.md for configuration and limitations.
+
+---
+
+# Latest verification — camera-only chalk feedback (2026-10-23)
+
+```text
+MUJOCO_GL=egl .venv/bin/python -m scripts.test_sandbox
+128 passed, 1 warning in 90.74s
+MUJOCO_GL=egl .venv/bin/python -m scripts.test_chalk_feedback --sandbox-heartbeat
+Passed four physical simulation cases.
+```
+
+The warning is the existing Starlette/AnyIO deprecation. New image tests cover visible, missing, partial and faint marks; occlusion; old ink; unrelated marks; exposure changes; invalid calibration; correction budgets; and rejection of a mostly-but-not-fully drawn stroke. The actual-physics test verifies hidden nib shortening and bounded depth offsets. Existing drawing, interruptions, parking, agent, voice, persistence and rendering tests pass.
+
+The real MuJoCo experiment used camera JPEG differences, a calibrated fixed view and the intended line as detector inputs. It did not pass hidden wear, contact state or ink coordinates to the policy:
+
+- Fresh chalk: visible, 100% path coverage, accepted without correction.
+- 0.6 mm shortening: missing on the first two attempts; visible at 0.5 mm total correction, 100% coverage.
+- 3 mm shortening: missing throughout, stopped after three retries at the 0.75 mm correction limit.
+- Progressive wear: approximately 79% coverage, classified weak/partial and stopped for inspection without lowering.
+
+The first experiment incorrectly accepted the 79% partial stroke with a permissive 65% threshold. The final implementation requires 95% coverage and adequate contrast; regression coverage was added and the complete physical experiment rerun successfully. Per-attempt timings and frames are recorded in `artifacts/chalk-feedback/results.json` and `artifacts/chalk-feedback/report.html`.
+
+This is an isolated simulation experiment, not an enabled production correction loop. The shortening/contact model and rendered marks are simplified; no live Astra, real chalk, physical robot, or real camera trial was performed. See docs/CHALK_FEEDBACK.md for limits and reproduction instructions.
+
+---
+
+# Latest verification — clear camera view (2026-10-23)
+
+`MUJOCO_GL=egl .venv/bin/python -m scripts.test_sandbox`: **118 passed, 1 warning in 90.74s**. The warning is the existing Starlette/AnyIO deprecation.
+
+The OpenArm now starts beside the board. Before paused/idle agent observations, bounded physics motion lifts and parks the pen outside the camera's board region. New actual-physics tests verify parking, preservation of partial strokes and the arc cursor, resumed progress, and cancellation during parking. A rendered frame after interrupting a house was visually inspected: the entire board is unobstructed. Agent frames bypass the display cache. Board-edge travel needed bounded settling correction from the new starting configuration; all four edge tests and the complete regression suite pass. Active drawing can still occlude the view; no hidden geometry or invisible-arm rendering is used. Model calls remain mocked; real-hardware path validation is not performed.
+
+---
+
+# Latest verification — joint and camera observations (2026-10-23)
+
+```text
+MUJOCO_GL=egl .venv/bin/python -m scripts.test_sandbox
+116 passed, 1 warning in 72.57s
+node --check frontend/simulation.js
+# exit 0
+```
+
+Real MuJoCo dynamics and EGL rendering were exercised. New tests verify encoder-based FK despite corrupted simulator site data, no contact sensor calls in control, dry-marker motion producing no camera ink, hidden manual geometry in all mocked agent requests, mandatory camera images in sensor mode, and separate environment-ink persistence/clear. All existing drawing, interruption, agent, voice, API and renderer tests pass. The warning is the existing Starlette/AnyIO deprecation.
+
+A 640×480 overhead render was inspected: the arm can occlude much of the board. This is exposed honestly to the agent; no privileged geometry fallback is supplied. Hardware camera placement and a clear-view pose remain necessary. Astra responses are mocked; no live model, real camera or hardware trial was performed. Simulator pause still freezes the clock, and manual input still triggers the generic board-change event; real hardware needs stop acknowledgment and camera-change detection. See docs/MUJOCO.md for the full sensor boundary and migration behavior.
+
+---
+
 # Latest verification — OpenArm v2 (2026-10-23)
 
 ```text

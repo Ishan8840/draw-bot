@@ -46,8 +46,12 @@ def create_app(database: str | None = None, tick_seconds=0.02, executor_factory=
         if factory is None:
             mode = os.getenv('ASTRA_EXECUTOR', 'virtual')
             if mode == 'mujoco':
-                from .simulation.executor import MuJoCoDrawingExecutor
-                factory = MuJoCoDrawingExecutor
+                if os.getenv('SIM_VERIFY_MARKS','true').lower()=='true':
+                    from .simulation.verified_executor import VerifiedMuJoCoExecutor
+                    factory = VerifiedMuJoCoExecutor
+                else:
+                    from .simulation.executor import MuJoCoDrawingExecutor
+                    factory = MuJoCoDrawingExecutor
             elif mode == 'virtual':
                 factory = VirtualDrawingExecutor
             else:

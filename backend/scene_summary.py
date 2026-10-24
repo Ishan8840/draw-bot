@@ -77,3 +77,33 @@ def recent_user_ink(scene):
                             'downsampled':len(points)>64,'point_count':len(points)})
         objects.append({'object_id':obj.object_id,'strokes':strokes,'strokes_truncated':len(obj.strokes)>4})
     return {'objects':objects,'note':'Latest 8 user objects, last 4 strokes each, up to 64 points per stroke. Retrieve exact geometry through get_scene_state.'}
+
+
+def sensor_summary(scene, offset=0, limit=50):
+    """Own plans and encoder-derived execution memory; no world/user geometry."""
+    objects=[o for o in scene.objects if o.source=='engine']
+    result={'revision':scene.revision,'generation':scene.generation,'status':scene.status,
+            'board':{'x':[0,1],'y':[0,1],'aspect_ratio':1},
+            'observation_mode':'camera_and_joint_state', 'ink_verified':False,
+            'drawing_feedback':scene.drawing_feedback.model_dump(mode='json') if scene.drawing_feedback else None,
+            'note':'Plans and motion estimates only. Inspect camera for actual ink, human marks, and available space. Completed means motion finished, not verified ink.',
+            'objects':[], 'object_count':len(objects),
+            'next_offset':offset+limit if offset+limit<len(objects) else None}
+    for obj in objects[offset:offset+limit]:
+        result['objects'].append({'object_id':obj.object_id,'source':'engine',
+            'strokes':[{'stroke_id':s.stroke_id,'status':s.status,'estimated_progress':s.progress,
+                        'geometry_type':s.geometry.type,'retry_of':s.retry_of,
+                        'mark_verification':s.mark_verification.model_dump(mode='json') if s.mark_verification else None} for s in obj.strokes[:64]],
+            'strokes_truncated':len(obj.strokes)>64})
+    return result
+
+
+def sensor_detail(obj, offset, limit):
+    if obj.source!='engine':
+        raise ValueError('Human marks are available through camera images only')
+    return {'object_id':obj.object_id,'ink_verified':False,
+            'strokes':[{'stroke_id':s.stroke_id,'planned_geometry':s.geometry.model_dump(mode='json'),
+                       'motion_status':s.status,'estimated_progress':s.progress,'retry_of':s.retry_of,
+                       'mark_verification':s.mark_verification.model_dump(mode='json') if s.mark_verification else None}
+                       for s in obj.strokes[offset:offset+limit]],
+            'next_offset':offset+limit if offset+limit<len(obj.strokes) else None}

@@ -19,7 +19,8 @@
       "enum": [
         "text",
         "voice",
-        "board"
+        "board",
+        "feedback"
       ],
       "title": "Source",
       "type": "string"

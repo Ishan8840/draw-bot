@@ -19,7 +19,7 @@ python -m scripts.run_mujoco
 
 If you do not have `.env`, copy `.env.example` once, then set `OPENAI_API_KEY` and retain your `OPENAI_MODEL` (default `gpt-6-astra`). You can run the structured JSON examples without a key. Do not overwrite an existing environment file. The launcher selects MuJoCo even if `.env` says `ASTRA_EXECUTOR=virtual`.
 
-Open **http://127.0.0.1:8000**. The live arm view appears above the editable board. Select Arm view or Top view. Drawing commands, chat, manual drawing, pause, resume, cancel and clear use the same interfaces as before. The lower board shows confirmed ink; the simulator's display paints that same authoritative ink on its board. Nothing is reconstructed from browser pixels.
+Open **http://127.0.0.1:8000**. The live arm view appears above the editable board. Select Arm view or Top view. Drawing commands, chat, manual drawing, pause, resume, cancel and clear use the same interfaces as before. The lower SVG board shows encoder-estimated robot traces and manual input, not verified ink. The camera shows simulated physical marks independently; use it to check whether drawing actually occurred.
 
 The launcher uses a separate `data/openarm-scene.sqlite3` and matching conversation database, preserving the existing virtual whiteboard. To intentionally use another scene:
 
@@ -60,15 +60,21 @@ surface_z = 0.14 m
 
 The sphere nib radius is 3 mm. Its contact target is z=0.1427 m and its lifted target is z=0.175 m. The marker is rigidly mounted across the gripper so a fixed wrist orientation points it downwards. This is a drawing fixture using the official robot model, not a calibrated digital twin of your particular hardware. Upstream arm collision geometry remains active, as does pen/board contact. There is no general collision-avoiding planner or hardware safety controller.
 
-Ink comes from measured nib/board contact positions, not the planned path. At a board edge, the reported contact midpoint is projected onto the finite board within the nib radius. Samples are spaced by about 0.09 mm in this 18 cm workspace. `executed_length` measures recorded ink while `total_length` remains the intended length; they can differ. Completion requires measured endpoint convergence and pen retraction.
+Control uses joint positions/velocities and forward kinematics from the nominal robot model. Pen-down is estimated against the fixed calibrated plane; there is no contact sensor input. Gravity/Coriolis compensation is computed on a separate nominal model using those joint readings. Neither simulator site positions nor simulator bias forces are feedback inputs.
+
+For API compatibility, `executed_points` and `executed_length` remain present but represent **estimated pen traces**, with scene `execution_observation="encoder_estimate_unverified"`. Completion means endpoint convergence and retraction, not verified ink. A dry marker can complete its motion without producing marks.
+
+The hidden simulation environment uses physical contacts to deposit marks for rendering, just as contact determines marks in the real world. These marks are stored separately in the SQLite `simulation_environment` table. Their coordinates and contact states are never sent to Astra or used to control movement. The camera renderer uses these environment marks rather than estimated trajectories. Mouse strokes inject marks into the simulated environment; their geometry and IDs are hidden from Astra in this mode.
+
+Existing databases from the previous contact-feedback implementation have no separate environment-ink record. Old robot traces remain in execution memory but are not invented as camera observations. Use a new simulation database for a clean demo. New environment marks persist across restart and cancellation; Clear erases them in the simulator. A real robot would need a separate erasing procedure.
 
 Requested speed is capped at 0.25 normalized units/s (**0.045 m/s**), with additional slowing from servo tracking and travel. The controller does not guarantee wall-clock real-time operation: rendering, persistence and hardware performance can slow simulation.
 
 ## Execution and interruptions
 
-`SceneDrawingExecutor` holds shared queue admission, validation, locking, persistence, modification and cancellation behavior. `VirtualDrawingExecutor` supplies ideal motion. `MuJoCoDrawingExecutor` supplies OpenArm dynamics feedback. Astra and activity decisions do not enter either motion controller.
+`SceneDrawingExecutor` holds shared queue admission, validation, locking, persistence, modification and cancellation behavior. `VirtualDrawingExecutor` supplies ideal motion. `MuJoCoDrawingExecutor` supplies OpenArm dynamics feedback. The default `VerifiedMuJoCoExecutor` adds interruptible before/after camera checks and bounded missing-mark retries; see [live chalk feedback](CHALK_FEEDBACK.md). Astra and activity decisions do not enter either motion controller.
 
-MuJoCo dynamics live on a dedicated worker thread. A separate renderer worker owns its own model/data and OpenGL context, using joint/ink snapshots from the authoritative executor. Physics batches are short (20 ms nominal simulation time; 50 ms maximum per call). A scene lock serializes those batches and their measured feedback against pause/cancel/clear. Server I/O and model/speech inference remain asynchronous. A control waits for an in-flight batch and its persistence, not an Astra API response. Rendering does not hold the scene lock or physics worker, so a slow frame does not block Stop. The browser polls serially and the server caches recent frames.
+MuJoCo dynamics live on a dedicated worker thread. A separate renderer worker owns its own model/data and OpenGL context, using joint snapshots and private environment ink. Physics batches are short (20 ms nominal simulation time; 50 ms maximum per call). A scene lock serializes those batches and their measured feedback against pause/cancel/clear. Server I/O and model/speech inference remain asynchronous. A control waits for an in-flight batch and its persistence, not an Astra API response. Rendering does not hold the scene lock or physics worker, so a slow frame does not block Stop. The browser polls serially and the server caches recent frames.
 
 Pause freezes simulation time at a committed feedback boundary. Cancel and clear discard motion cursors and advance drawing generations. Cancellation does not erase existing ink; new commands first lift and reposition. Clear removes the virtual ink and permits reuse of IDs, with a fresh controller cursor. Pending strokes are cancelled on restart; the robot starts lifted at home, and saved ink is restored. A simulator fault pauses execution and revokes older model generations; use Cancel and a new instruction to discard a faulted plan.
 
@@ -76,7 +82,9 @@ These are simulator stop semantics. Setting a simulation velocity to zero at a r
 
 ## Visual observations and APIs
 
-With MuJoCo, Astra receives a fresh 768×768 board image with each Responses API request, plus the existing structured scene and detailed-geometry tool. Images show executed ink only: blue for the user's paths and dark for robot paths. The image is an orthographic raster of authoritative ink, not a camera-perception or vision-reconstruction system. It does not depict the arm or unexecuted plans. Old screenshots are not accumulated in the conversation journal. Set `ASTRA_BOARD_IMAGES=false` to disable images; it defaults off in virtual mode. Enabling it there requires Pillow.
+With MuJoCo, each Astra request receives a rendered 640×480 JPEG from the fixed overhead camera, joint positions/velocities, and the fixed board calibration. The camera includes the arm and possible occlusion during drawing. Before a paused/idle agent observation, the executor lifts the pen to 0.19 m, then parks it beside the board at world (0.074, -0.16, 0.19) using bounded actuator motion. The initial pose is also parked. The interrupted arc cursor and partial trace are retained; resume lifts/travels back to that cursor before continuing. Parking runs in short batches and aborts on a changed generation or resumed drawing. Fresh agent frames bypass the display cache. Active drawing is not stopped merely to obtain an image. Own planned geometry and estimated motion progress remain accessible as action memory; human geometry, exact ink coordinates, contact state, and computed ground-truth free-space cells are excluded from all agent scene/tool responses. Astra interprets marks and available space visually. The same universal drawing tools remain in use.
+
+Camera observations are mandatory in this mode (even if `ASTRA_BOARD_IMAGES=false`). A rendering failure fails the agent request rather than falling back to privileged vector geometry. Virtual-only mode retains its previous optional ideal raster for compatibility. Frames may be cached for up to 0.2 seconds and image/joint snapshots are not a synchronized hardware sensor packet. No real-camera acquisition, calibration estimator, visual ink verification algorithm, or continuous camera-change trigger is implemented yet: mouse input still supplies the generic board-change event. Real deployment needs these adapters, plus calibrated pen/tool geometry and validation of the clear-view travel path on hardware.
 
 The existing model is unchanged. Images use the documented Responses `input_image` data-URL format; see [official OpenAI image input documentation](https://developers.openai.com/api/docs/guides/images-vision?api-mode=responses). No image-generation service or additional reasoning model is used.
 
@@ -84,7 +92,7 @@ Additional read-only endpoints:
 
 | Endpoint | Result |
 | --- | --- |
-| `GET /simulation/status` | Executor type, phase, simulation time, joint positions, pen position/contact, tracking error, board transform, faults and scene revision/generation |
+| `GET /simulation/status` | Executor type, phase, simulation time, joint positions, estimated pen position (no contact reading), tracking error, board transform, faults and scene revision/generation |
 | `GET /simulation/frame?camera=overview` | JPEG from the MuJoCo offscreen renderer |
 | `GET /simulation/frame?camera=top` | Top camera JPEG |
 

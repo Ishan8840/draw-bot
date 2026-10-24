@@ -96,7 +96,26 @@ class SpeedCommand(Model):
     speed: Annotated[float, Field(ge=0.01, le=5, allow_inf_nan=False, strict=True)]
 
 
+class MarkVerification(Model):
+    outcome: Literal['visible', 'missing', 'weak_or_partial', 'inconclusive']
+    decision: Literal['accepted', 'retry', 'inspection_required']
+    path_coverage: float | None = Field(default=None, ge=0, le=1)
+    new_pixels: int | None = Field(default=None, ge=0)
+    note: str
+    source: Literal['camera_frame_difference'] = 'camera_frame_difference'
+
+
+class DrawingFeedback(Model):
+    enabled: bool = True
+    phase: Literal['idle', 'parking_before', 'capturing_before', 'drawing', 'parking_after', 'checking', 'inspection_required'] = 'idle'
+    stroke_id: str | None = None
+    depth_offset_m: float = Field(default=0., ge=0, le=.00075)
+    latest: MarkVerification | None = None
+
+
 class StrokeState(StrokeSpec):
+    mark_verification: MarkVerification | None = None
+    retry_of: str | None = None
     status: Literal["pending", "executing", "completed", "cancelled"] = "pending"
     executed_points: list[Point] = Field(default_factory=list)
     executed_length: float = 0
@@ -112,6 +131,8 @@ class DrawingObject(Model):
 
 
 class Scene(Model):
+    drawing_feedback: DrawingFeedback | None = None
+    execution_observation: Literal["virtual_ink", "encoder_estimate_unverified"] = "virtual_ink"
     schema_version: Literal[1] = 1
     revision: int = 0
     generation: int = 0

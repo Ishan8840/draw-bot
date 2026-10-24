@@ -79,7 +79,7 @@ class ConversationStore:
         return event_id
 
     async def history(self, session_id):
-        rows = await self.query("SELECT kind,content FROM events WHERE session_id=? AND kind IN ('user','assistant','interruption') ORDER BY id DESC LIMIT 24", (session_id,), True)
+        rows = await self.query("SELECT kind,content FROM events WHERE session_id=? AND kind IN ('user','assistant','interruption','observation') ORDER BY id DESC LIMIT 24", (session_id,), True)
         return [{'role':'assistant' if r['kind']=='assistant' else 'user',
                  'content':r['content'][:8000 if index==len(rows)-1 else 4000] if r['kind']!='interruption' else '[Execution interruption] '+r['content']}
                 for index,r in enumerate(reversed(rows))]

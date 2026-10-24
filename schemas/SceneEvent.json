@@ -57,6 +57,62 @@
       "title": "CubicBezier",
       "type": "object"
     },
+    "DrawingFeedback": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "default": true,
+          "title": "Enabled",
+          "type": "boolean"
+        },
+        "phase": {
+          "default": "idle",
+          "enum": [
+            "idle",
+            "parking_before",
+            "capturing_before",
+            "drawing",
+            "parking_after",
+            "checking",
+            "inspection_required"
+          ],
+          "title": "Phase",
+          "type": "string"
+        },
+        "stroke_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Stroke Id"
+        },
+        "depth_offset_m": {
+          "default": 0.0,
+          "maximum": 0.00075,
+          "minimum": 0,
+          "title": "Depth Offset M",
+          "type": "number"
+        },
+        "latest": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MarkVerification"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "title": "DrawingFeedback",
+      "type": "object"
+    },
     "DrawingObject": {
       "additionalProperties": false,
       "properties": {
@@ -117,6 +173,74 @@
         "end"
       ],
       "title": "Line",
+      "type": "object"
+    },
+    "MarkVerification": {
+      "additionalProperties": false,
+      "properties": {
+        "outcome": {
+          "enum": [
+            "visible",
+            "missing",
+            "weak_or_partial",
+            "inconclusive"
+          ],
+          "title": "Outcome",
+          "type": "string"
+        },
+        "decision": {
+          "enum": [
+            "accepted",
+            "retry",
+            "inspection_required"
+          ],
+          "title": "Decision",
+          "type": "string"
+        },
+        "path_coverage": {
+          "anyOf": [
+            {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Path Coverage"
+        },
+        "new_pixels": {
+          "anyOf": [
+            {
+              "minimum": 0,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "New Pixels"
+        },
+        "note": {
+          "title": "Note",
+          "type": "string"
+        },
+        "source": {
+          "const": "camera_frame_difference",
+          "default": "camera_frame_difference",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "outcome",
+        "decision",
+        "note"
+      ],
+      "title": "MarkVerification",
       "type": "object"
     },
     "Point": {
@@ -203,6 +327,26 @@
     "Scene": {
       "additionalProperties": false,
       "properties": {
+        "drawing_feedback": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/DrawingFeedback"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "execution_observation": {
+          "default": "virtual_ink",
+          "enum": [
+            "virtual_ink",
+            "encoder_estimate_unverified"
+          ],
+          "title": "Execution Observation",
+          "type": "string"
+        },
         "schema_version": {
           "const": 1,
           "default": 1,
@@ -324,6 +468,29 @@
             }
           ],
           "title": "Geometry"
+        },
+        "mark_verification": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/MarkVerification"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "retry_of": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry Of"
         },
         "status": {
           "default": "pending",

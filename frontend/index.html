@@ -12,6 +12,7 @@
 <p class="hint">Draw or speak below. The arm uses the same commands; the board shows measured pen contact.</p>
 </section>
 <div class="board-toolbar"><div><span class="status-dot"></span><strong id="status" role="status">Idle</strong><span id="progress">No strokes yet</span></div><label class="pen-toggle"><input type="checkbox" id="pen"> Draw by hand</label></div>
+<p id="trace-note" hidden>Estimated pen trace and manual input below. Use the camera to check actual marks.</p>
 <div class="board-wrap"><svg id="board" viewBox="0 0 1000 1000" aria-label="Square whiteboard, normalized coordinates" role="img"><g id="ink"></g><polyline id="manual-preview" fill="none" stroke="#337e81" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
 <div class="board-caption"><span>(0, 0) ↘ (1, 1) · Square board</span><span id="revision">Revision 0</span></div>
 <div class="controls"><button data-action="pause">Pause</button><button data-action="resume">Resume</button><button data-action="cancel" class="cancel">Cancel drawing</button><button data-action="clear" class="quiet">Clear board</button></div>

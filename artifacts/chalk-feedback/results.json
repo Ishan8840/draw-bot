@@ -1,0 +1,244 @@
+[
+  {
+    "case": "fresh",
+    "attempts": [
+      {
+        "attempt": 0,
+        "evidence": {
+          "outcome": "visible",
+          "path_coverage": 1.0,
+          "new_pixels": 194,
+          "outside_change_fraction": 1.1361699710276658e-05,
+          "prior_mark_fraction": 0.0,
+          "brightness_shift": 0.0,
+          "source": "camera_frame_difference",
+          "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+        },
+        "decision": {
+          "action": "accept",
+          "step_m": 0.00025,
+          "max_offset_m": 0.00075,
+          "max_retries": 3,
+          "retries": 0,
+          "offset_m": 0.0
+        },
+        "motion_and_observation_wall_s": 7.367150689999107
+      }
+    ],
+    "final_action": "accept",
+    "environment_setup": {
+      "initial_loss_m": 0.0,
+      "wear_m_per_m": 0.0
+    },
+    "detector_inputs": "before/after camera JPEGs, intended line, fixed camera calibration only"
+  },
+  {
+    "case": "shortened",
+    "attempts": [
+      {
+        "attempt": 0,
+        "evidence": {
+          "outcome": "missing",
+          "path_coverage": 0.0,
+          "new_pixels": 0,
+          "outside_change_fraction": 0.0,
+          "prior_mark_fraction": 0.0,
+          "brightness_shift": 0.0,
+          "source": "camera_frame_difference",
+          "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+        },
+        "decision": {
+          "action": "retry",
+          "step_m": 0.00025,
+          "max_offset_m": 0.00075,
+          "max_retries": 3,
+          "retries": 1,
+          "offset_m": 0.00025
+        },
+        "motion_and_observation_wall_s": 7.035377090011025
+      },
+      {
+        "attempt": 1,
+        "evidence": {
+          "outcome": "missing",
+          "path_coverage": 0.0,
+          "new_pixels": 0,
+          "outside_change_fraction": 0.0,
+          "prior_mark_fraction": 0.0,
+          "brightness_shift": 0.0,
+          "source": "camera_frame_difference",
+          "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+        },
+        "decision": {
+          "action": "retry",
+          "step_m": 0.00025,
+          "max_offset_m": 0.00075,
+          "max_retries": 3,
+          "retries": 2,
+          "offset_m": 0.0005
+        },
+        "motion_and_observation_wall_s": 7.475627178006107
+      },
+      {
+        "attempt": 2,
+        "evidence": {
+          "outcome": "visible",
+          "path_coverage": 1.0,
+          "new_pixels": 218,
+          "outside_change_fraction": 2.2723399420553316e-05,
+          "prior_mark_fraction": 0.0,
+          "brightness_shift": 0.0,
+          "source": "camera_frame_difference",
+          "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+        },
+        "decision": {
+          "action": "accept",
+          "step_m": 0.00025,
+          "max_offset_m": 0.00075,
+          "max_retries": 3,
+          "retries": 2,
+          "offset_m": 0.0005
+        },
+        "motion_and_observation_wall_s": 7.7521659240010194
+      }
+    ],
+    "final_action": "accept",
+    "environment_setup": {
+      "initial_loss_m": 0.0006,
+      "wear_m_per_m": 0.0
+    },
+    "detector_inputs": "before/after camera JPEGs, intended line, fixed camera calibration only"
+  },
+  {
+    "case": "exhausted",
+    "attempts": [
+      {
+        "attempt": 0,
+        "evidence": {
+          "outcome": "missing",
+          "path_coverage": 0.0,
+          "new_pixels": 0,
+          "outside_change_fraction": 0.0,
+          "prior_mark_fraction": 0.0,
+          "brightness_shift": 0.0,
+          "source": "camera_frame_difference",
+          "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+        },
+        "decision": {
+          "action": "retry",
+          "step_m": 0.00025,
+          "max_offset_m": 0.00075,
+          "max_retries": 3,
+          "retries": 1,
+          "offset_m": 0.00025
+        },
+        "motion_and_observation_wall_s": 7.1661365820036735
+      },
+      {
+        "attempt": 1,
+        "evidence": {
+          "outcome": "missing",
+          "path_coverage": 0.0,
+          "new_pixels": 0,
+          "outside_change_fraction": 0.0,
+          "prior_mark_fraction": 0.0,
+          "brightness_shift": 0.0,
+          "source": "camera_frame_difference",
+          "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+        },
+        "decision": {
+          "action": "retry",
+          "step_m": 0.00025,
+          "max_offset_m": 0.00075,
+          "max_retries": 3,
+          "retries": 2,
+          "offset_m": 0.0005
+        },
+        "motion_and_observation_wall_s": 7.215224357001716
+      },
+      {
+        "attempt": 2,
+        "evidence": {
+          "outcome": "missing",
+          "path_coverage": 0.0,
+          "new_pixels": 0,
+          "outside_change_fraction": 0.0,
+          "prior_mark_fraction": 0.0,
+          "brightness_shift": 0.0,
+          "source": "camera_frame_difference",
+          "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+        },
+        "decision": {
+          "action": "retry",
+          "step_m": 0.00025,
+          "max_offset_m": 0.00075,
+          "max_retries": 3,
+          "retries": 3,
+          "offset_m": 0.00075
+        },
+        "motion_and_observation_wall_s": 7.643143495981349
+      },
+      {
+        "attempt": 3,
+        "evidence": {
+          "outcome": "missing",
+          "path_coverage": 0.0,
+          "new_pixels": 0,
+          "outside_change_fraction": 0.0,
+          "prior_mark_fraction": 0.0,
+          "brightness_shift": 0.0,
+          "source": "camera_frame_difference",
+          "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+        },
+        "decision": {
+          "action": "stop_limit",
+          "step_m": 0.00025,
+          "max_offset_m": 0.00075,
+          "max_retries": 3,
+          "retries": 3,
+          "offset_m": 0.00075
+        },
+        "motion_and_observation_wall_s": 7.6110235799860675
+      }
+    ],
+    "final_action": "stop_limit",
+    "environment_setup": {
+      "initial_loss_m": 0.003,
+      "wear_m_per_m": 0.0
+    },
+    "detector_inputs": "before/after camera JPEGs, intended line, fixed camera calibration only"
+  },
+  {
+    "case": "wearing",
+    "attempts": [
+      {
+        "attempt": 0,
+        "evidence": {
+          "outcome": "weak_or_partial",
+          "path_coverage": 0.7894736842105263,
+          "new_pixels": 222,
+          "outside_change_fraction": 0.0,
+          "prior_mark_fraction": 0.0,
+          "brightness_shift": 0.0,
+          "source": "camera_frame_difference",
+          "note": "Evidence of changed pixels near the planned path, not a contact or force measurement."
+        },
+        "decision": {
+          "action": "stop_inspect",
+          "step_m": 0.00025,
+          "max_offset_m": 0.00075,
+          "max_retries": 3,
+          "retries": 0,
+          "offset_m": 0.0
+        },
+        "motion_and_observation_wall_s": 7.051997018017573
+      }
+    ],
+    "final_action": "stop_inspect",
+    "environment_setup": {
+      "initial_loss_m": 0.0,
+      "wear_m_per_m": 0.02
+    },
+    "detector_inputs": "before/after camera JPEGs, intended line, fixed camera calibration only"
+  }
+]
