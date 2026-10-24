@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Astra · Robot Artist</title><link rel="stylesheet" href="/static/style.css"></head>
+<body>
+<header><div><span class="eyebrow">ROBOT ARTIST / SIMULATION</span><h1>Astra <span>Drawing studio</span></h1></div><div class="connection" id="connection" role="status">Connecting…</div></header>
+<main>
+<section class="studio" aria-label="Whiteboard">
+<section id="simulation-panel" class="simulation-panel" hidden aria-label="MuJoCo robot simulation">
+<div class="simulation-heading"><strong>MuJoCo · OpenArm v2</strong><select id="simulation-camera" aria-label="Simulator camera"><option value="overview">Arm view</option><option value="top">Top view</option></select></div>
+<img id="simulation-frame" alt="Live MuJoCo view of the robot arm and measured board ink">
+<p id="simulation-status" role="status">Connecting to simulator…</p>
+<p class="hint">Draw or speak below. The arm uses the same commands; the board shows measured pen contact.</p>
+</section>
+<div class="board-toolbar"><div><span class="status-dot"></span><strong id="status" role="status">Idle</strong><span id="progress">No strokes yet</span></div><label class="pen-toggle"><input type="checkbox" id="pen"> Draw by hand</label></div>
+<div class="board-wrap"><svg id="board" viewBox="0 0 1000 1000" aria-label="Square whiteboard, normalized coordinates" role="img"><g id="ink"></g><polyline id="manual-preview" fill="none" stroke="#337e81" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+<div class="board-caption"><span>(0, 0) ↘ (1, 1) · Square board</span><span id="revision">Revision 0</span></div>
+<div class="controls"><button data-action="pause">Pause</button><button data-action="resume">Resume</button><button data-action="cancel" class="cancel">Cancel drawing</button><button data-action="clear" class="quiet">Clear board</button></div>
+<label class="speed" for="speed"><span>Drawing speed <output id="speed-value">0.25 units/s</output></span><input type="range" id="speed" min="0.01" max="2" step="0.01" value="0.25"></label>
+<label class="pen-toggle"><input type="checkbox" id="react-to-ink" checked> Astra responds to my drawings</label>
+<p class="hint">Draw by hand; Astra observes your ink after a short pause and decides how to respond. Pause holds the pen; cancel keeps the ink.</p>
+</section>
+<aside>
+<section class="panel chat-panel" aria-label="Conversation with Astra">
+<div class="panel-heading"><h2>Talk to Astra</h2><span class="tag" id="agent-status">Connecting</span></div>
+<div class="voice-panel" aria-label="Local voice controls">
+<div class="voice-buttons"><button id="voice-enable" type="button">Enable microphone</button><button id="voice-mute" type="button" aria-pressed="false">Mute speaker</button></div>
+<div class="voice-indicators"><span id="mic-status" role="status">Microphone off</span><span id="speaking-status" role="status">Astra silent</span></div>
+<p id="voice-transcript" aria-live="polite">Speech transcripts appear here.</p>
+<details><summary>Voice &amp; audio settings</summary><label for="voice-select">Local Piper voice</label><select id="voice-select"></select><label for="audio-input">Microphone</label><select id="audio-input"><option value="">Default input</option></select><label for="voice-silence">End-of-speech silence (ms)</label><input id="voice-silence" type="number" min="160" max="2000" step="10" value="450"><label for="voice-threshold">VAD threshold</label><input id="voice-threshold" type="number" min="0.1" max="0.95" step="0.05" value="0.5"><label><input type="checkbox" id="voice-responses" checked> Speak Astra responses</label><p class="hint">Changes to input, voice, silence and VAD threshold apply when you re-enable the microphone. Echo cancellation is enabled; headphones help.</p></details>
+<p id="voice-error" class="hint" role="alert"></p>
+</div>
+<div id="chat-history" role="log" aria-live="polite"><p class="hint">Ask for a drawing, then add to it or change the plan.</p></div>
+<form id="chat-form"><label for="chat-input">Your instruction</label><textarea id="chat-input" rows="3" maxlength="8000" placeholder="Draw a house. Then add a tree to the right." required></textarea><div class="chat-actions"><button class="primary" id="chat-send" type="submit">Send to Astra ↗</button><button class="cancel" id="chat-stop" type="button">Stop</button></div></form>
+<p class="hint" id="chat-notice" role="status">New messages pause active drawing so Astra can revise the plan. Stop preserves existing ink.</p>
+</section>
+<details class="command-panel"><summary>Structured commands &amp; examples</summary>
+<section class="panel"><div class="panel-heading"><h2>Drawing command</h2><span class="tag">JSON</span></div><label for="example">Start with an example</label><select id="example"><option value="house">Simple house</option><option value="circle">Circle</option><option value="square">Square</option><option value="tic_tac_toe">Tic-tac-toe grid</option><option value="x">X</option><option value="o">O</option><option value="bezier">Bézier wave</option></select><label for="command">Universal stroke command</label><textarea id="command" spellcheck="false" aria-label="JSON drawing command"></textarea><button class="primary" id="execute">Execute drawing <span aria-hidden="true">↗</span></button><p id="message" role="alert">Every example uses the same drawing engine.</p></section>
+</details>
+<section class="panel inspector"><div class="panel-heading"><h2>Scene state</h2><button id="refresh" class="quiet small">Refresh</button></div><div id="scene-summary"></div><details><summary>Inspect authoritative JSON</summary><pre id="scene-json"></pre></details></section>
+</aside>
+</main><footer>Universal geometry. Deterministic execution. <a href="/docs" target="_blank" rel="noreferrer">API reference ↗</a></footer>
+<script src="/static/app.js" defer></script>
+<script src="/static/chat.js" defer></script>
+<script src="/static/voice.js" defer></script>
+<script src="/static/simulation.js" defer></script>
+</body></html>

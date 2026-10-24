@@ -1,0 +1,62 @@
+{
+  "schema_version": 1,
+  "object_id": "tic_tac_toe",
+  "paths": [
+    {
+      "stroke_id": "tic_tac_toe-stroke-1",
+      "geometry": {
+        "type": "line",
+        "start": {
+          "x": 0.38,
+          "y": 0.15
+        },
+        "end": {
+          "x": 0.38,
+          "y": 0.85
+        }
+      }
+    },
+    {
+      "stroke_id": "tic_tac_toe-stroke-2",
+      "geometry": {
+        "type": "line",
+        "start": {
+          "x": 0.62,
+          "y": 0.15
+        },
+        "end": {
+          "x": 0.62,
+          "y": 0.85
+        }
+      }
+    },
+    {
+      "stroke_id": "tic_tac_toe-stroke-3",
+      "geometry": {
+        "type": "line",
+        "start": {
+          "x": 0.15,
+          "y": 0.38
+        },
+        "end": {
+          "x": 0.85,
+          "y": 0.38
+        }
+      }
+    },
+    {
+      "stroke_id": "tic_tac_toe-stroke-4",
+      "geometry": {
+        "type": "line",
+        "start": {
+          "x": 0.15,
+          "y": 0.62
+        },
+        "end": {
+          "x": 0.85,
+          "y": 0.62
+        }
+      }
+    }
+  ]
+}

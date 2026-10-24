@@ -1,0 +1,74 @@
+{
+  "schema_version": 1,
+  "object_id": "house",
+  "paths": [
+    {
+      "stroke_id": "house-stroke-1",
+      "geometry": {
+        "type": "polyline",
+        "points": [
+          {
+            "x": 0.2,
+            "y": 0.45
+          },
+          {
+            "x": 0.5,
+            "y": 0.18
+          },
+          {
+            "x": 0.8,
+            "y": 0.45
+          }
+        ]
+      }
+    },
+    {
+      "stroke_id": "house-stroke-2",
+      "geometry": {
+        "type": "rectangle",
+        "origin": {
+          "x": 0.27,
+          "y": 0.45
+        },
+        "width": 0.46,
+        "height": 0.37
+      }
+    },
+    {
+      "stroke_id": "house-stroke-3",
+      "geometry": {
+        "type": "rectangle",
+        "origin": {
+          "x": 0.44,
+          "y": 0.6
+        },
+        "width": 0.12,
+        "height": 0.22
+      }
+    },
+    {
+      "stroke_id": "house-stroke-4",
+      "geometry": {
+        "type": "rectangle",
+        "origin": {
+          "x": 0.32,
+          "y": 0.53
+        },
+        "width": 0.08,
+        "height": 0.08
+      }
+    },
+    {
+      "stroke_id": "house-stroke-5",
+      "geometry": {
+        "type": "rectangle",
+        "origin": {
+          "x": 0.6,
+          "y": 0.53
+        },
+        "width": 0.08,
+        "height": 0.08
+      }
+    }
+  ]
+}

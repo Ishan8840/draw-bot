@@ -1,0 +1,34 @@
+{
+  "schema_version": 1,
+  "object_id": "x",
+  "paths": [
+    {
+      "stroke_id": "x-stroke-1",
+      "geometry": {
+        "type": "line",
+        "start": {
+          "x": 0.22,
+          "y": 0.22
+        },
+        "end": {
+          "x": 0.78,
+          "y": 0.78
+        }
+      }
+    },
+    {
+      "stroke_id": "x-stroke-2",
+      "geometry": {
+        "type": "line",
+        "start": {
+          "x": 0.78,
+          "y": 0.22
+        },
+        "end": {
+          "x": 0.22,
+          "y": 0.78
+        }
+      }
+    }
+  ]
+}

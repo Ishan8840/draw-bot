@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "object_id": "bezier",
+  "paths": [
+    {
+      "stroke_id": "bezier-stroke-1",
+      "geometry": {
+        "type": "cubic_bezier",
+        "start": {
+          "x": 0.1,
+          "y": 0.5
+        },
+        "control1": {
+          "x": 0.35,
+          "y": 0.05
+        },
+        "control2": {
+          "x": 0.65,
+          "y": 0.95
+        },
+        "end": {
+          "x": 0.9,
+          "y": 0.5
+        }
+      }
+    }
+  ]
+}

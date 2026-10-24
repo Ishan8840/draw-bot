@@ -1,0 +1,535 @@
+[
+  {
+    "type": "function",
+    "name": "get_scene_state",
+    "description": "Read current semantic objects, actual ink, incomplete paths, free area and recent user ink. With object_id and include_geometry=true, offset/limit paginate exact strokes. Otherwise paginate object summaries.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {
+        "object_id": {
+          "anyOf": [
+            {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "include_geometry": {
+          "type": "boolean"
+        },
+        "offset": {
+          "minimum": 0,
+          "type": "integer"
+        },
+        "limit": {
+          "maximum": 10,
+          "minimum": 1,
+          "type": "integer"
+        }
+      },
+      "type": "object",
+      "required": [
+        "object_id",
+        "include_geometry",
+        "offset",
+        "limit"
+      ]
+    },
+    "strict": true
+  },
+  {
+    "type": "function",
+    "name": "draw_strokes",
+    "description": "Append one semantic object with at most 32 strokes / 2048 input points. It queues asynchronously; success does not mean execution is complete. Use fresh object and globally unique stroke IDs.",
+    "parameters": {
+      "$defs": {
+        "Circle": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "circle"
+              ]
+            },
+            "center": {
+              "$ref": "#/$defs/Point"
+            },
+            "radius": {
+              "exclusiveMinimum": 0,
+              "maximum": 0.5,
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "center",
+            "radius"
+          ],
+          "type": "object"
+        },
+        "CubicBezier": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "cubic_bezier"
+              ]
+            },
+            "start": {
+              "$ref": "#/$defs/Point"
+            },
+            "control1": {
+              "$ref": "#/$defs/Point"
+            },
+            "control2": {
+              "$ref": "#/$defs/Point"
+            },
+            "end": {
+              "$ref": "#/$defs/Point"
+            }
+          },
+          "required": [
+            "type",
+            "start",
+            "control1",
+            "control2",
+            "end"
+          ],
+          "type": "object"
+        },
+        "Line": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "line"
+              ]
+            },
+            "start": {
+              "$ref": "#/$defs/Point"
+            },
+            "end": {
+              "$ref": "#/$defs/Point"
+            }
+          },
+          "required": [
+            "type",
+            "start",
+            "end"
+          ],
+          "type": "object"
+        },
+        "Point": {
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            "y": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ],
+          "type": "object"
+        },
+        "Polyline": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "polyline"
+              ]
+            },
+            "points": {
+              "items": {
+                "$ref": "#/$defs/Point"
+              },
+              "maxItems": 4096,
+              "minItems": 2,
+              "type": "array"
+            }
+          },
+          "required": [
+            "type",
+            "points"
+          ],
+          "type": "object"
+        },
+        "Rectangle": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "rectangle"
+              ]
+            },
+            "origin": {
+              "$ref": "#/$defs/Point"
+            },
+            "width": {
+              "exclusiveMinimum": 0,
+              "maximum": 1,
+              "type": "number"
+            },
+            "height": {
+              "exclusiveMinimum": 0,
+              "maximum": 1,
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "origin",
+            "width",
+            "height"
+          ],
+          "type": "object"
+        },
+        "StrokeSpec": {
+          "additionalProperties": false,
+          "properties": {
+            "stroke_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            "geometry": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Line"
+                },
+                {
+                  "$ref": "#/$defs/Polyline"
+                },
+                {
+                  "$ref": "#/$defs/CubicBezier"
+                },
+                {
+                  "$ref": "#/$defs/Circle"
+                },
+                {
+                  "$ref": "#/$defs/Rectangle"
+                }
+              ]
+            }
+          },
+          "required": [
+            "stroke_id",
+            "geometry"
+          ],
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "object_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "type": "string"
+        },
+        "paths": {
+          "items": {
+            "$ref": "#/$defs/StrokeSpec"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "object_id",
+        "paths"
+      ],
+      "type": "object"
+    },
+    "strict": true
+  },
+  {
+    "type": "function",
+    "name": "modify_object",
+    "description": "Replace the remaining plan of an existing object with fresh stroke IDs. Old pending/executing paths become cancelled; all old geometry and executed ink remain. Supply ONLY additional ink; never claim ink was erased. Paused execution stays paused.",
+    "parameters": {
+      "$defs": {
+        "Circle": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "circle"
+              ]
+            },
+            "center": {
+              "$ref": "#/$defs/Point"
+            },
+            "radius": {
+              "exclusiveMinimum": 0,
+              "maximum": 0.5,
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "center",
+            "radius"
+          ],
+          "type": "object"
+        },
+        "CubicBezier": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "cubic_bezier"
+              ]
+            },
+            "start": {
+              "$ref": "#/$defs/Point"
+            },
+            "control1": {
+              "$ref": "#/$defs/Point"
+            },
+            "control2": {
+              "$ref": "#/$defs/Point"
+            },
+            "end": {
+              "$ref": "#/$defs/Point"
+            }
+          },
+          "required": [
+            "type",
+            "start",
+            "control1",
+            "control2",
+            "end"
+          ],
+          "type": "object"
+        },
+        "Line": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "line"
+              ]
+            },
+            "start": {
+              "$ref": "#/$defs/Point"
+            },
+            "end": {
+              "$ref": "#/$defs/Point"
+            }
+          },
+          "required": [
+            "type",
+            "start",
+            "end"
+          ],
+          "type": "object"
+        },
+        "Point": {
+          "additionalProperties": false,
+          "properties": {
+            "x": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            },
+            "y": {
+              "maximum": 1,
+              "minimum": 0,
+              "type": "number"
+            }
+          },
+          "required": [
+            "x",
+            "y"
+          ],
+          "type": "object"
+        },
+        "Polyline": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "polyline"
+              ]
+            },
+            "points": {
+              "items": {
+                "$ref": "#/$defs/Point"
+              },
+              "maxItems": 4096,
+              "minItems": 2,
+              "type": "array"
+            }
+          },
+          "required": [
+            "type",
+            "points"
+          ],
+          "type": "object"
+        },
+        "Rectangle": {
+          "additionalProperties": false,
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "rectangle"
+              ]
+            },
+            "origin": {
+              "$ref": "#/$defs/Point"
+            },
+            "width": {
+              "exclusiveMinimum": 0,
+              "maximum": 1,
+              "type": "number"
+            },
+            "height": {
+              "exclusiveMinimum": 0,
+              "maximum": 1,
+              "type": "number"
+            }
+          },
+          "required": [
+            "type",
+            "origin",
+            "width",
+            "height"
+          ],
+          "type": "object"
+        },
+        "StrokeSpec": {
+          "additionalProperties": false,
+          "properties": {
+            "stroke_id": {
+              "maxLength": 128,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+              "type": "string"
+            },
+            "geometry": {
+              "anyOf": [
+                {
+                  "$ref": "#/$defs/Line"
+                },
+                {
+                  "$ref": "#/$defs/Polyline"
+                },
+                {
+                  "$ref": "#/$defs/CubicBezier"
+                },
+                {
+                  "$ref": "#/$defs/Circle"
+                },
+                {
+                  "$ref": "#/$defs/Rectangle"
+                }
+              ]
+            }
+          },
+          "required": [
+            "stroke_id",
+            "geometry"
+          ],
+          "type": "object"
+        }
+      },
+      "additionalProperties": false,
+      "properties": {
+        "object_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "type": "string"
+        },
+        "paths": {
+          "items": {
+            "$ref": "#/$defs/StrokeSpec"
+          },
+          "maxItems": 32,
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "object_id",
+        "paths"
+      ],
+      "type": "object"
+    },
+    "strict": true
+  },
+  {
+    "type": "function",
+    "name": "pause_drawing",
+    "description": "Pause the current execution without erasing ink or pending paths.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object",
+      "required": []
+    },
+    "strict": true
+  },
+  {
+    "type": "function",
+    "name": "resume_drawing",
+    "description": "Explicitly resume the currently paused valid plan.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object",
+      "required": []
+    },
+    "strict": true
+  },
+  {
+    "type": "function",
+    "name": "cancel_drawing",
+    "description": "Invalidate all current/pending strokes and preserve executed ink.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object",
+      "required": []
+    },
+    "strict": true
+  },
+  {
+    "type": "function",
+    "name": "clear_board",
+    "description": "Erase the virtual board and invalidate pending work. Only call when the user explicitly requests clearing.",
+    "parameters": {
+      "additionalProperties": false,
+      "properties": {},
+      "type": "object",
+      "required": []
+    },
+    "strict": true
+  }
+]

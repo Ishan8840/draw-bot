@@ -1,0 +1,4 @@
+# Optional simulator, alongside requirements.txt. No GPU is required for physics.
+mujoco>=3.3,<4
+numpy>=1.26,<3
+pillow>=10,<14

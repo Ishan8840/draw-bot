@@ -1,0 +1,16 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "speed": {
+      "maximum": 5,
+      "minimum": 0.01,
+      "title": "Speed",
+      "type": "number"
+    }
+  },
+  "required": [
+    "speed"
+  ],
+  "title": "SpeedCommand",
+  "type": "object"
+}

@@ -1,0 +1,12 @@
+{
+  "physics": "actual MuJoCo OpenArm v2 dynamics; no mocked robot or model call",
+  "wall_seconds": 14.418794148979941,
+  "simulation_seconds": 13.282000000001105,
+  "pause_ack_ms": 17.30905001750216,
+  "maximum_tracking_error_during_draw_m": 0.001392591086796495,
+  "house_partial_ink_preserved": true,
+  "new_circle_completed": true,
+  "executed_points": 3256,
+  "simulation_pause": "clock frozen; not a real robot braking measurement",
+  "playback": "GIF is accelerated and sampled; not real-time performance"
+}

@@ -1,0 +1,34 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "maxLength": 8000,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    },
+    "request_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Request Id",
+      "type": "string"
+    },
+    "source": {
+      "default": "text",
+      "enum": [
+        "text",
+        "voice",
+        "board"
+      ],
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "text",
+    "request_id"
+  ],
+  "title": "ChatMessage",
+  "type": "object"
+}

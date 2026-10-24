@@ -1,0 +1,130 @@
+{
+  "$defs": {
+    "ChatEvent": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "integer"
+        },
+        "turn_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Turn Id"
+        },
+        "kind": {
+          "enum": [
+            "user",
+            "assistant",
+            "tool_call",
+            "tool_result",
+            "error",
+            "interruption"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        },
+        "tool_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tool Name"
+        },
+        "call_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Call Id"
+        },
+        "created_at": {
+          "title": "Created At",
+          "type": "number"
+        },
+        "source": {
+          "default": "text",
+          "enum": [
+            "text",
+            "voice",
+            "board"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "turn_id",
+        "kind",
+        "content",
+        "created_at"
+      ],
+      "title": "ChatEvent",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "session_id": {
+      "title": "Session Id",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "idle",
+        "thinking",
+        "interrupted",
+        "error"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "turn_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Turn Id"
+    },
+    "events": {
+      "items": {
+        "$ref": "#/$defs/ChatEvent"
+      },
+      "title": "Events",
+      "type": "array"
+    }
+  },
+  "required": [
+    "session_id",
+    "status",
+    "turn_id",
+    "events"
+  ],
+  "title": "ChatSession",
+  "type": "object"
+}

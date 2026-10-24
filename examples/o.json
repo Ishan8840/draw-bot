@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "object_id": "o",
+  "paths": [
+    {
+      "stroke_id": "o-stroke-1",
+      "geometry": {
+        "type": "circle",
+        "center": {
+          "x": 0.5,
+          "y": 0.5
+        },
+        "radius": 0.26
+      }
+    }
+  ]
+}

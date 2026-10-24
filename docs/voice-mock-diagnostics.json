@@ -1,0 +1,79 @@
+{
+  "mode": "mocked audio inference and simulated playback acknowledgement; not hardware latency",
+  "records": [
+    {
+      "stage": "speech_start",
+      "stream_id": "bc282a9c-1455-4539-afda-1c176e3b424a",
+      "utterance_id": 1,
+      "server_wall_ms": 1791586899133.015,
+      "server_monotonic_ms": 72400385.486,
+      "estimated_speech_wall_ms": 1791586899036.981
+    },
+    {
+      "stage": "fast_transcription_complete",
+      "stream_id": "bc282a9c-1455-4539-afda-1c176e3b424a",
+      "utterance_id": 1,
+      "server_wall_ms": 1791586899170.391,
+      "server_monotonic_ms": 72400422.853,
+      "duration_ms": 6.052
+    },
+    {
+      "stage": "fast_transcription_complete",
+      "stream_id": "bc282a9c-1455-4539-afda-1c176e3b424a",
+      "utterance_id": 1,
+      "server_wall_ms": 1791586899194.519,
+      "server_monotonic_ms": 72400446.982,
+      "duration_ms": 6.424
+    },
+    {
+      "stage": "speech_end",
+      "stream_id": "bc282a9c-1455-4539-afda-1c176e3b424a",
+      "utterance_id": 1,
+      "server_wall_ms": 1791586899209.826,
+      "server_monotonic_ms": 72400462.298,
+      "estimated_speech_wall_ms": 1791586898729.7349
+    },
+    {
+      "stage": "transcription_complete",
+      "stream_id": "bc282a9c-1455-4539-afda-1c176e3b424a",
+      "utterance_id": 1,
+      "server_wall_ms": 1791586899215.916,
+      "server_monotonic_ms": 72400468.379,
+      "duration_ms": 5.727,
+      "speech_end_to_transcript_ms": 486.175
+    },
+    {
+      "stage": "drawing_pause",
+      "stream_id": "bc282a9c-1455-4539-afda-1c176e3b424a",
+      "utterance_id": 1,
+      "server_wall_ms": 1791586899252.515,
+      "server_monotonic_ms": 72400504.978,
+      "speech_to_control_ms": 215.521
+    },
+    {
+      "stage": "local_control_response",
+      "stream_id": "bc282a9c-1455-4539-afda-1c176e3b424a",
+      "utterance_id": 1,
+      "server_wall_ms": 1791586899295.029,
+      "server_monotonic_ms": 72400547.502,
+      "event_wall_ms": 1791586899284.6643
+    },
+    {
+      "stage": "tts_generated",
+      "stream_id": "bc282a9c-1455-4539-afda-1c176e3b424a",
+      "utterance_id": 1,
+      "server_wall_ms": 1791586899300.917,
+      "server_monotonic_ms": 72400553.381,
+      "duration_ms": 5.47,
+      "audio_bytes": 1068
+    },
+    {
+      "stage": "playback_started",
+      "stream_id": "bc282a9c-1455-4539-afda-1c176e3b424a",
+      "utterance_id": 1,
+      "server_wall_ms": 1791586899301.309,
+      "server_monotonic_ms": 72400553.771,
+      "generation": 3
+    }
+  ]
+}

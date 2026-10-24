@@ -1,0 +1,1458 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Astra Robot Artist",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/agent/config": {
+      "get": {
+        "summary": "Agent Config",
+        "operationId": "agent_config_agent_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentConfiguration"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/sessions": {
+      "post": {
+        "summary": "Create Session",
+        "operationId": "create_session_agent_sessions_post",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatSession"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/sessions/{session_id}": {
+      "get": {
+        "summary": "Get Session",
+        "operationId": "get_session_agent_sessions__session_id__get",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatSession"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/sessions/{session_id}/messages": {
+      "post": {
+        "summary": "Chat",
+        "operationId": "chat_agent_sessions__session_id__messages_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChatMessage"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatSession"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/voice/config": {
+      "get": {
+        "summary": "Voice Config",
+        "operationId": "voice_config_voice_config_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/voice/diagnostics": {
+      "get": {
+        "summary": "Voice Diagnostics",
+        "operationId": "voice_diagnostics_voice_diagnostics_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/agent/sessions/{session_id}/stop": {
+      "post": {
+        "summary": "Stop Agent",
+        "operationId": "stop_agent_agent_sessions__session_id__stop_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Session Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChatSession"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/commands/draw": {
+      "post": {
+        "summary": "Draw",
+        "operationId": "draw_commands_draw_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DrawCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scene"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/commands/manual": {
+      "post": {
+        "summary": "Manual",
+        "description": "Record user ink already observed on the virtual board, without replay.",
+        "operationId": "manual_commands_manual_post",
+        "parameters": [
+          {
+            "name": "session_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Session Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DrawCommand"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scene"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/commands/modify": {
+      "post": {
+        "summary": "Modify",
+        "operationId": "modify_commands_modify_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModifyCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scene"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/commands/pause": {
+      "post": {
+        "summary": "Pause",
+        "operationId": "pause_commands_pause_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlCommand",
+                "default": {
+                  "schema_version": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scene"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/commands/resume": {
+      "post": {
+        "summary": "Resume",
+        "operationId": "resume_commands_resume_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlCommand",
+                "default": {
+                  "schema_version": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scene"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/commands/cancel": {
+      "post": {
+        "summary": "Cancel",
+        "operationId": "cancel_commands_cancel_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlCommand",
+                "default": {
+                  "schema_version": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scene"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/commands/clear": {
+      "post": {
+        "summary": "Clear",
+        "operationId": "clear_commands_clear_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ControlCommand",
+                "default": {
+                  "schema_version": 1
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scene"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/commands/speed": {
+      "post": {
+        "summary": "Speed",
+        "operationId": "speed_commands_speed_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SpeedCommand"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scene"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/scene": {
+      "get": {
+        "summary": "Scene",
+        "operationId": "scene_scene_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Scene"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/status": {
+      "get": {
+        "summary": "Status",
+        "operationId": "status_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExecutionStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/simulation/status": {
+      "get": {
+        "summary": "Simulation Status",
+        "operationId": "simulation_status_simulation_status_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/simulation/frame": {
+      "get": {
+        "summary": "Simulation Frame",
+        "operationId": "simulation_frame_simulation_frame_get",
+        "parameters": [
+          {
+            "name": "camera",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "overview",
+                "top"
+              ],
+              "type": "string",
+              "default": "overview",
+              "title": "Camera"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AgentConfiguration": {
+        "properties": {
+          "configured": {
+            "type": "boolean",
+            "title": "Configured"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "max_rounds": {
+            "type": "integer",
+            "title": "Max Rounds"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "configured",
+          "model",
+          "max_rounds"
+        ],
+        "title": "AgentConfiguration"
+      },
+      "ChatEvent": {
+        "properties": {
+          "id": {
+            "type": "integer",
+            "title": "Id"
+          },
+          "turn_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turn Id"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant",
+              "tool_call",
+              "tool_result",
+              "error",
+              "interruption"
+            ],
+            "title": "Kind"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          },
+          "tool_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tool Name"
+          },
+          "call_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Call Id"
+          },
+          "created_at": {
+            "type": "number",
+            "title": "Created At"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "text",
+              "voice",
+              "board"
+            ],
+            "title": "Source",
+            "default": "text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "turn_id",
+          "kind",
+          "content",
+          "created_at"
+        ],
+        "title": "ChatEvent"
+      },
+      "ChatMessage": {
+        "properties": {
+          "text": {
+            "type": "string",
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Text"
+          },
+          "request_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Request Id"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "text",
+              "voice",
+              "board"
+            ],
+            "title": "Source",
+            "default": "text"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "text",
+          "request_id"
+        ],
+        "title": "ChatMessage"
+      },
+      "ChatSession": {
+        "properties": {
+          "session_id": {
+            "type": "string",
+            "title": "Session Id"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "thinking",
+              "interrupted",
+              "error"
+            ],
+            "title": "Status"
+          },
+          "turn_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Turn Id"
+          },
+          "events": {
+            "items": {
+              "$ref": "#/components/schemas/ChatEvent"
+            },
+            "type": "array",
+            "title": "Events"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "session_id",
+          "status",
+          "turn_id",
+          "events"
+        ],
+        "title": "ChatSession"
+      },
+      "Circle": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "circle",
+            "title": "Type"
+          },
+          "center": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "radius": {
+            "type": "number",
+            "maximum": 0.5,
+            "exclusiveMinimum": 0.0,
+            "title": "Radius"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "center",
+          "radius"
+        ],
+        "title": "Circle"
+      },
+      "ControlCommand": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Schema Version",
+            "default": 1
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ControlCommand"
+      },
+      "CubicBezier": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "cubic_bezier",
+            "title": "Type"
+          },
+          "start": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "control1": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "control2": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "end": {
+            "$ref": "#/components/schemas/Point"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "start",
+          "control1",
+          "control2",
+          "end"
+        ],
+        "title": "CubicBezier"
+      },
+      "DrawCommand": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Schema Version",
+            "default": 1
+          },
+          "object_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Object Id"
+          },
+          "paths": {
+            "items": {
+              "$ref": "#/components/schemas/StrokeSpec"
+            },
+            "type": "array",
+            "maxItems": 256,
+            "minItems": 1,
+            "title": "Paths"
+          },
+          "expected_generation": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Generation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "object_id",
+          "paths"
+        ],
+        "title": "DrawCommand"
+      },
+      "DrawingObject": {
+        "properties": {
+          "object_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Object Id"
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "engine",
+              "user"
+            ],
+            "title": "Source"
+          },
+          "generation": {
+            "type": "integer",
+            "title": "Generation"
+          },
+          "strokes": {
+            "items": {
+              "$ref": "#/components/schemas/StrokeState"
+            },
+            "type": "array",
+            "title": "Strokes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "object_id",
+          "source",
+          "generation",
+          "strokes"
+        ],
+        "title": "DrawingObject"
+      },
+      "ExecutionStatus": {
+        "properties": {
+          "revision": {
+            "type": "integer",
+            "title": "Revision"
+          },
+          "generation": {
+            "type": "integer",
+            "title": "Generation"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "drawing",
+              "paused",
+              "cancelled"
+            ],
+            "title": "Status"
+          },
+          "speed": {
+            "type": "number",
+            "title": "Speed"
+          },
+          "current_stroke_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Stroke Id"
+          },
+          "pending": {
+            "type": "integer",
+            "title": "Pending"
+          },
+          "completed": {
+            "type": "integer",
+            "title": "Completed"
+          },
+          "cancelled": {
+            "type": "integer",
+            "title": "Cancelled"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "revision",
+          "generation",
+          "status",
+          "speed",
+          "current_stroke_id",
+          "pending",
+          "completed",
+          "cancelled"
+        ],
+        "title": "ExecutionStatus"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Line": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "line",
+            "title": "Type"
+          },
+          "start": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "end": {
+            "$ref": "#/components/schemas/Point"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "start",
+          "end"
+        ],
+        "title": "Line"
+      },
+      "ModifyCommand": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Schema Version",
+            "default": 1
+          },
+          "object_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Object Id"
+          },
+          "paths": {
+            "items": {
+              "$ref": "#/components/schemas/StrokeSpec"
+            },
+            "type": "array",
+            "maxItems": 256,
+            "minItems": 1,
+            "title": "Paths"
+          },
+          "expected_generation": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Generation"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "object_id",
+          "paths"
+        ],
+        "title": "ModifyCommand",
+        "description": "Replace future ink; old strokes and their executed portions remain historical."
+      },
+      "Point": {
+        "properties": {
+          "x": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "X"
+          },
+          "y": {
+            "type": "number",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Y"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "x",
+          "y"
+        ],
+        "title": "Point"
+      },
+      "Polyline": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "polyline",
+            "title": "Type"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/Point"
+            },
+            "type": "array",
+            "maxItems": 4096,
+            "minItems": 2,
+            "title": "Points"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "points"
+        ],
+        "title": "Polyline"
+      },
+      "Rectangle": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "const": "rectangle",
+            "title": "Type"
+          },
+          "origin": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "width": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Width"
+          },
+          "height": {
+            "type": "number",
+            "maximum": 1.0,
+            "exclusiveMinimum": 0.0,
+            "title": "Height"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "origin",
+          "width",
+          "height"
+        ],
+        "title": "Rectangle"
+      },
+      "Scene": {
+        "properties": {
+          "schema_version": {
+            "type": "integer",
+            "const": 1,
+            "title": "Schema Version",
+            "default": 1
+          },
+          "revision": {
+            "type": "integer",
+            "title": "Revision",
+            "default": 0
+          },
+          "generation": {
+            "type": "integer",
+            "title": "Generation",
+            "default": 0
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "idle",
+              "drawing",
+              "paused",
+              "cancelled"
+            ],
+            "title": "Status",
+            "default": "idle"
+          },
+          "speed": {
+            "type": "number",
+            "title": "Speed",
+            "default": 0.25
+          },
+          "board_aspect_ratio": {
+            "type": "number",
+            "const": 1.0,
+            "title": "Board Aspect Ratio",
+            "default": 1.0
+          },
+          "objects": {
+            "items": {
+              "$ref": "#/components/schemas/DrawingObject"
+            },
+            "type": "array",
+            "title": "Objects"
+          },
+          "current_stroke_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Stroke Id"
+          },
+          "pending_stroke_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Pending Stroke Ids"
+          },
+          "completed_stroke_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Completed Stroke Ids"
+          },
+          "cancelled_stroke_ids": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Cancelled Stroke Ids"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "Scene"
+      },
+      "SpeedCommand": {
+        "properties": {
+          "speed": {
+            "type": "number",
+            "maximum": 5.0,
+            "minimum": 0.01,
+            "title": "Speed"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "speed"
+        ],
+        "title": "SpeedCommand"
+      },
+      "StrokeSpec": {
+        "properties": {
+          "stroke_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Stroke Id"
+          },
+          "geometry": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Line"
+              },
+              {
+                "$ref": "#/components/schemas/Polyline"
+              },
+              {
+                "$ref": "#/components/schemas/CubicBezier"
+              },
+              {
+                "$ref": "#/components/schemas/Circle"
+              },
+              {
+                "$ref": "#/components/schemas/Rectangle"
+              }
+            ],
+            "title": "Geometry",
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "circle": "#/components/schemas/Circle",
+                "cubic_bezier": "#/components/schemas/CubicBezier",
+                "line": "#/components/schemas/Line",
+                "polyline": "#/components/schemas/Polyline",
+                "rectangle": "#/components/schemas/Rectangle"
+              }
+            }
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "stroke_id",
+          "geometry"
+        ],
+        "title": "StrokeSpec"
+      },
+      "StrokeState": {
+        "properties": {
+          "stroke_id": {
+            "type": "string",
+            "maxLength": 128,
+            "minLength": 1,
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+            "title": "Stroke Id"
+          },
+          "geometry": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/Line"
+              },
+              {
+                "$ref": "#/components/schemas/Polyline"
+              },
+              {
+                "$ref": "#/components/schemas/CubicBezier"
+              },
+              {
+                "$ref": "#/components/schemas/Circle"
+              },
+              {
+                "$ref": "#/components/schemas/Rectangle"
+              }
+            ],
+            "title": "Geometry",
+            "discriminator": {
+              "propertyName": "type",
+              "mapping": {
+                "circle": "#/components/schemas/Circle",
+                "cubic_bezier": "#/components/schemas/CubicBezier",
+                "line": "#/components/schemas/Line",
+                "polyline": "#/components/schemas/Polyline",
+                "rectangle": "#/components/schemas/Rectangle"
+              }
+            }
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "executing",
+              "completed",
+              "cancelled"
+            ],
+            "title": "Status",
+            "default": "pending"
+          },
+          "executed_points": {
+            "items": {
+              "$ref": "#/components/schemas/Point"
+            },
+            "type": "array",
+            "title": "Executed Points"
+          },
+          "executed_length": {
+            "type": "number",
+            "title": "Executed Length",
+            "default": 0
+          },
+          "total_length": {
+            "type": "number",
+            "title": "Total Length"
+          },
+          "progress": {
+            "type": "number",
+            "title": "Progress",
+            "default": 0
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "stroke_id",
+          "geometry",
+          "total_length"
+        ],
+        "title": "StrokeState"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

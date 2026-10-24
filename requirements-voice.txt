@@ -1,0 +1,5 @@
+# Optional local speech stack. Install alongside requirements.txt; Python 3.11/3.12 recommended.
+numpy>=1.26,<3
+onnxruntime>=1.18,<2
+faster-whisper>=1.1,<2
+piper-tts>=1.4.2,<2

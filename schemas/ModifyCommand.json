@@ -1,0 +1,258 @@
+{
+  "$defs": {
+    "Circle": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "circle",
+          "title": "Type",
+          "type": "string"
+        },
+        "center": {
+          "$ref": "#/$defs/Point"
+        },
+        "radius": {
+          "exclusiveMinimum": 0,
+          "maximum": 0.5,
+          "title": "Radius",
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "center",
+        "radius"
+      ],
+      "title": "Circle",
+      "type": "object"
+    },
+    "CubicBezier": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "cubic_bezier",
+          "title": "Type",
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/Point"
+        },
+        "control1": {
+          "$ref": "#/$defs/Point"
+        },
+        "control2": {
+          "$ref": "#/$defs/Point"
+        },
+        "end": {
+          "$ref": "#/$defs/Point"
+        }
+      },
+      "required": [
+        "type",
+        "start",
+        "control1",
+        "control2",
+        "end"
+      ],
+      "title": "CubicBezier",
+      "type": "object"
+    },
+    "Line": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "line",
+          "title": "Type",
+          "type": "string"
+        },
+        "start": {
+          "$ref": "#/$defs/Point"
+        },
+        "end": {
+          "$ref": "#/$defs/Point"
+        }
+      },
+      "required": [
+        "type",
+        "start",
+        "end"
+      ],
+      "title": "Line",
+      "type": "object"
+    },
+    "Point": {
+      "additionalProperties": false,
+      "properties": {
+        "x": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "X",
+          "type": "number"
+        },
+        "y": {
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Y",
+          "type": "number"
+        }
+      },
+      "required": [
+        "x",
+        "y"
+      ],
+      "title": "Point",
+      "type": "object"
+    },
+    "Polyline": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "polyline",
+          "title": "Type",
+          "type": "string"
+        },
+        "points": {
+          "items": {
+            "$ref": "#/$defs/Point"
+          },
+          "maxItems": 4096,
+          "minItems": 2,
+          "title": "Points",
+          "type": "array"
+        }
+      },
+      "required": [
+        "type",
+        "points"
+      ],
+      "title": "Polyline",
+      "type": "object"
+    },
+    "Rectangle": {
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "const": "rectangle",
+          "title": "Type",
+          "type": "string"
+        },
+        "origin": {
+          "$ref": "#/$defs/Point"
+        },
+        "width": {
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Width",
+          "type": "number"
+        },
+        "height": {
+          "exclusiveMinimum": 0,
+          "maximum": 1,
+          "title": "Height",
+          "type": "number"
+        }
+      },
+      "required": [
+        "type",
+        "origin",
+        "width",
+        "height"
+      ],
+      "title": "Rectangle",
+      "type": "object"
+    },
+    "StrokeSpec": {
+      "additionalProperties": false,
+      "properties": {
+        "stroke_id": {
+          "maxLength": 128,
+          "minLength": 1,
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+          "title": "Stroke Id",
+          "type": "string"
+        },
+        "geometry": {
+          "discriminator": {
+            "mapping": {
+              "circle": "#/$defs/Circle",
+              "cubic_bezier": "#/$defs/CubicBezier",
+              "line": "#/$defs/Line",
+              "polyline": "#/$defs/Polyline",
+              "rectangle": "#/$defs/Rectangle"
+            },
+            "propertyName": "type"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Line"
+            },
+            {
+              "$ref": "#/$defs/Polyline"
+            },
+            {
+              "$ref": "#/$defs/CubicBezier"
+            },
+            {
+              "$ref": "#/$defs/Circle"
+            },
+            {
+              "$ref": "#/$defs/Rectangle"
+            }
+          ],
+          "title": "Geometry"
+        }
+      },
+      "required": [
+        "stroke_id",
+        "geometry"
+      ],
+      "title": "StrokeSpec",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Replace future ink; old strokes and their executed portions remain historical.",
+  "properties": {
+    "schema_version": {
+      "const": 1,
+      "default": 1,
+      "title": "Schema Version",
+      "type": "integer"
+    },
+    "object_id": {
+      "maxLength": 128,
+      "minLength": 1,
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]*$",
+      "title": "Object Id",
+      "type": "string"
+    },
+    "paths": {
+      "items": {
+        "$ref": "#/$defs/StrokeSpec"
+      },
+      "maxItems": 256,
+      "minItems": 1,
+      "title": "Paths",
+      "type": "array"
+    },
+    "expected_generation": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Expected Generation"
+    }
+  },
+  "required": [
+    "object_id",
+    "paths"
+  ],
+  "title": "ModifyCommand",
+  "type": "object"
+}

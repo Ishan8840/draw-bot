@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "object_id": "square",
+  "paths": [
+    {
+      "stroke_id": "square-stroke-1",
+      "geometry": {
+        "type": "rectangle",
+        "origin": {
+          "x": 0.25,
+          "y": 0.25
+        },
+        "width": 0.5,
+        "height": 0.5
+      }
+    }
+  ]
+}
